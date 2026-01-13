@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // tests/ThreadPool.test.ts
 import { ThreadPool } from '../src/ThreadPool';
 
@@ -423,6 +425,368 @@ describe('ThreadPool', () => {
 
             const result = await pool.execute(() => null);
             expect(result).toBeNull();
+        });
+    });
+
+    describe('Arrow functions support', () => {
+        beforeEach(() => {
+            pool = new ThreadPool(4);
+        });
+
+        it('should execute single parameter arrow function', async () => {
+            const result = await pool.execute(x => x * 3, [14]);
+            expect(result).toBe(42);
+        });
+
+        it('should execute multi-parameter arrow function', async () => {
+            const result = await pool.execute((a, b, c) => a + b + c, [10, 20, 12]);
+            expect(result).toBe(42);
+        });
+
+        it('should execute arrow function with block body', async () => {
+            const result = await pool.execute((n) => {
+                let factorial = 1;
+                for (let i = 1; i <= n; i++) {
+                    factorial *= i;
+                }
+                return factorial;
+            }, [5]);
+            expect(result).toBe(120);
+        });
+
+        it('should map with arrow function', async () => {
+            const items = [1, 2, 3, 4, 5];
+            const results = await pool.map(items, x => x ** 2);
+            expect(results).toEqual([1, 4, 9, 16, 25]);
+        });
+
+        it('should handle arrow function with complex transformation', async () => {
+            const items = ['hello', 'world'];
+            const results = await pool.map(items, str => ({
+                original: str,
+                upper: str.toUpperCase(),
+                length: str.length,
+                reversed: str.split('').reverse().join('')
+            }));
+
+            expect(results).toEqual([
+                { original: 'hello', upper: 'HELLO', length: 5, reversed: 'olleh' },
+                { original: 'world', upper: 'WORLD', length: 5, reversed: 'dlrow' }
+            ]);
+        });
+
+        it('should handle mixed function styles', async () => {
+            const [arrowResult, regularResult] = await Promise.all([
+                pool.execute(x => x * 2, [10]),
+                pool.execute(function (x) { return x * 2; }, [10])
+            ]);
+
+            expect(arrowResult).toBe(20);
+            expect(regularResult).toBe(20);
+            expect(arrowResult).toBe(regularResult);
+        });
+
+        it('should handle arrow functions in parallel', async () => {
+            const tasks = [
+                pool.execute(x => x + 1, [10]),
+                pool.execute((a, b) => a * b, [5, 6]),
+                pool.execute(n => n ** 2, [7]),
+                pool.execute(() => 42)
+            ];
+
+            const results = await Promise.all(tasks);
+            expect(results).toEqual([11, 30, 49, 42]);
+        });
+
+        it('should handle arrow function with array operations', async () => {
+            const result = await pool.execute(arr => {
+                return arr
+                    .filter(x => x > 5)
+                    .map(x => x * 2)
+                    .reduce((sum, x) => sum + x, 0);
+            }, [[1, 3, 5, 7, 9, 11]]);
+
+            expect(result).toBe(54); // (7 + 9 + 11) * 2 = 54
+        });
+
+        it('should handle no-parameter arrow function', async () => {
+            const result = await pool.execute(() => Math.PI * 2);
+            expect(result).toBeCloseTo(6.283185);
+        });
+
+        it('should handle arrow function errors', async () => {
+            await expect(
+                pool.execute(x => {
+                    if (x < 0) throw new Error('Negative number');
+                    return x * 2;
+                }, [-5])
+            ).rejects.toThrow('Negative number');
+        });
+    });
+    describe('Arrow functions edge cases', () => {
+        beforeEach(() => {
+            pool = new ThreadPool(4);
+        });
+
+        it('should handle arrow function returning object with parentheses', async () => {
+            const result = await pool.execute(() => ({ x: 42, y: 'test' }));
+            expect(result).toEqual({ x: 42, y: 'test' });
+        });
+
+        it('should handle nested arrow functions', async () => {
+            const result = await pool.execute((arr) => {
+                return arr.map(x => x * 3).filter(x => x > 10);
+            }, [[1, 2, 3, 4, 5]]);
+            expect(result).toEqual([12, 15]);
+        });
+
+        it('should handle arrow function with destructuring', async () => {
+            const result = await pool.execute(
+                ({ x, y }) => x * y,
+                [{ x: 6, y: 7 }]
+            );
+            expect(result).toBe(42);
+        });
+
+        it('should handle arrow function with rest parameters', async () => {
+            const result = await pool.execute(
+                (...nums) => nums.reduce((acc, n) => acc + n, 0),
+                [10, 11, 12, 9]
+            );
+            expect(result).toBe(42);
+        });
+
+        it('should handle arrow function with default parameters', async () => {
+            const result = await pool.execute(
+                (a, b = 20, c = 15) => a + b + c,
+                [7]
+            );
+            expect(result).toBe(42);
+        });
+
+        it('should handle arrow function with template literals', async () => {
+            const result = await pool.execute(
+                (x, y) => `Result: ${x + y}`,
+                [40, 2]
+            );
+            expect(result).toBe('Result: 42');
+        });
+
+        it('should handle arrow function with ternary operator', async () => {
+            const result = await pool.execute(
+                (x, y) => x > y ? x - y : y - x,
+                [50, 8]
+            );
+            expect(result).toBe(42);
+        });
+
+        it('should handle arrow function with chained array methods', async () => {
+            const result = await pool.execute(
+                arr => arr
+                    .map(x => x * 2)
+                    .filter(x => x > 10)
+                    .reduce((sum, x) => sum + x, 0),
+                [[1, 5, 10, 15]]
+            );
+            expect(result).toBe(50); // [1,5,10,15] -> [2,10,20,30] -> [20,30] -> 50
+        });
+
+        it('should handle map with destructuring', async () => {
+            const items = [
+                { name: 'Alice', age: 25 },
+                { name: 'Bob', age: 30 }
+            ];
+            const results = await pool.map(
+                items,
+                ({ name, age }) => `${name}: ${age}`
+            );
+            expect(results).toEqual(['Alice: 25', 'Bob: 30']);
+        });
+
+        it('should handle arrow function returning undefined', async () => {
+            const result = await pool.execute(() => undefined);
+            expect(result).toBeUndefined();
+        });
+
+        it('should handle arrow function with early returns', async () => {
+            const result = await pool.execute((arr) => {
+                if (!arr || arr.length === 0) return 0;
+                return arr.reduce((sum, x) => sum + x, 0);
+            }, [[10, 20, 12]]);
+            expect(result).toBe(42);
+        });
+
+        it('should handle arrow function with type coercion', async () => {
+            const result = await pool.execute(
+                (a, b, c) => Number(a) + Number(b) + Number(c),
+                ['10', '20', '12']
+            );
+            expect(result).toBe(42);
+        });
+
+        it('should handle arrow function with spread in arrays', async () => {
+            const result = await pool.execute(
+                (arr1, arr2) => [...arr1, ...arr2].reduce((sum, x) => sum + x, 0),
+                [[10, 20], [8, 4]]
+            );
+            expect(result).toBe(42);
+        });
+
+        it('should handle arrow function with optional chaining', async () => {
+            const result = await pool.execute(
+                (obj) => obj?.data?.value ?? 0,
+                [{ data: { value: 42 } }]
+            );
+            expect(result).toBe(42);
+        });
+
+        it('should handle arrow function with nullish coalescing', async () => {
+            const result = await pool.execute(
+                (x, y) => (x ?? 0) + (y ?? 0),
+                [null, 42]
+            );
+            expect(result).toBe(42);
+        });
+
+        it('should handle many concurrent arrow functions', async () => {
+            const tasks = Array.from({ length: 50 }, (_, i) =>
+                pool.execute(x => x * 2, [i])
+            );
+
+            const results = await Promise.all(tasks);
+            expect(results.length).toBe(50);
+            expect(results[21]).toBe(42);
+        });
+    });
+
+    describe('Arrow functions limitations', () => {
+        beforeEach(() => {
+            pool = new ThreadPool(2);
+        });
+
+        it('should fail with closure variables', async () => {
+            const multiplier = 21;
+
+            await expect(
+                pool.execute(x => x * multiplier, [2])
+            ).rejects.toThrow();
+        });
+
+        it('should work when closure variables passed as arguments', async () => {
+            const multiplier = 21;
+
+            const result = await pool.execute(
+                (x, mult) => x * mult,
+                [2, multiplier]
+            );
+            expect(result).toBe(42);
+        });
+
+        it('should work with Node.js built-in modules', async () => {
+            // В worker_threads require работает нормально
+            const result = await pool.execute(() => {
+                const fs = require('fs');
+                return fs.existsSync('.');
+            });
+            expect(result).toBe(true);
+        });
+
+        it('should fail with class method context', async () => {
+            class Processor {
+                multiplier = 21;
+
+                async process(x: number) {
+                    return pool.execute(() => x * this.multiplier);
+                }
+            }
+
+            const proc = new Processor();
+            await expect(proc.process(2)).rejects.toThrow();
+        });
+
+        it('should work when class properties passed explicitly', async () => {
+            class Processor {
+                multiplier = 21;
+
+                async process(x: number) {
+                    return pool.execute(
+                        (val, mult) => val * mult,
+                        [x, this.multiplier]
+                    );
+                }
+            }
+
+            const proc = new Processor();
+            const result = await proc.process(2);
+            expect(result).toBe(42);
+        });
+
+        it('should not access global variables from outer scope', async () => {
+            (global as any).magicNumber = 42;
+
+            // Воркер не имеет доступа к глобальным переменным главного потока
+            const result = await pool.execute(() => (global as any).magicNumber);
+            expect(result).toBeUndefined();
+
+            delete (global as any).magicNumber;
+        });
+
+        it('should work with Math built-ins', async () => {
+            const result = await pool.execute(() =>
+                Math.floor(Math.sqrt(1764))
+            );
+            expect(result).toBe(42);
+        });
+
+        it('should work with Date API', async () => {
+            const result = await pool.execute(() => {
+                const date = new Date(2024, 0, 1);
+                return date.getMonth();
+            });
+            expect(result).toBe(0);
+        });
+
+        it('should work with JSON operations', async () => {
+            const result = await pool.execute(
+                str => JSON.parse(str),
+                ['{"value":42}']
+            );
+            expect(result).toEqual({ value: 42 });
+        });
+
+        it('should fail with outer scope helper functions', async () => {
+            const double = (x: number) => x * 2;
+
+            await expect(
+                pool.execute((n) => double(n), [21])
+            ).rejects.toThrow();
+        });
+
+        it('should work with inline helper functions', async () => {
+            const result = await pool.execute((n) => {
+                const double = (x: number) => x * 2;
+                return double(n);
+            }, [21]);
+
+            expect(result).toBe(42);
+        });
+
+        it('should work with multiple inline helpers', async () => {
+            const result = await pool.execute((n) => {
+                const double = (x: number) => x * 2;
+                const add = (x: number, y: number) => x + y;
+                return add(double(n), 2);
+            }, [20]);
+
+            expect(result).toBe(42);
+        });
+
+        it('should handle map failures with closures gracefully', async () => {
+            const multiplier = 10;
+
+            await expect(
+                pool.map([1, 2, 3], x => x * multiplier)
+            ).rejects.toThrow();
         });
     });
 });

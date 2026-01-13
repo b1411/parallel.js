@@ -12,6 +12,9 @@
     "type": "git",
     "url": "git+https://github.com/b1411/parallel.js.git"
   },
+  "engines": {
+    "node": ">=14.0.0"
+  },
   "type": "module",
   "scripts": {
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",

@@ -2,9 +2,8 @@
 
 [![npm version](https://img.shields.io/npm/v/stardust-parallel-js.svg)](https://www.npmjs.com/package/stardust-parallel-js)
 [![npm downloads](https://img.shields.io/npm/dm/stardust-parallel-js.svg)](https://www.npmjs.com/package/stardust-parallel-js)
-[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://github.com/b1411/parallel.js/actions/workflows/test.yml/badge.svg)](https://github.com/b1411/parallel.js/actions/workflows/test.yml)
-[![codecov](https://codecov.io/gh/b1411/parallel.js/branch/main/graph/badge.svg)](https://codecov.io/gh/b1411/parallel.js)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Coverage](https://img.shields.io/badge/coverage-77%25-yellowgreen.svg)](https://github.com/b1411/parallel.js)
 [![Node.js Version](https://img.shields.io/node/v/stardust-parallel-js.svg)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue.svg)](https://www.typescriptlang.org/)
 [![Bundle Size](https://img.shields.io/bundlephobia/min/stardust-parallel-js)](https://bundlephobia.com/package/stardust-parallel-js)
@@ -223,7 +222,7 @@ await pool.terminate();
 
 ## Лицензия
 
-ISC
+MIT
 
 ## Разработка
 

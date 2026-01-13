@@ -1,2 +1,2 @@
-export { ThreadPool } from "@/ThreadPool.js";
-export { Thread } from "@/Thread.js";
+export { ThreadPool } from "@/primitives/ThreadPool.js";
+export { Thread } from "@/primitives/Thread.js";

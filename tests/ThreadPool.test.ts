@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // tests/ThreadPool.test.ts
-import { ThreadPool } from '../src/ThreadPool';
+import { ThreadPool } from '../src/primitives/ThreadPool';
 
 describe('ThreadPool', () => {
     let pool: ThreadPool;

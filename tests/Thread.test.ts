@@ -1,4 +1,4 @@
-import { Thread } from '../src/Thread';
+import { Thread } from '../src/primitives/Thread';
 
 describe('Thread', () => {
     it('should execute simple computation', async () => {

@@ -1,5 +1,5 @@
-import { Thread } from "../src/Thread.js";
-import { ThreadPool } from "../src/ThreadPool.js";
+import { Thread } from "../src/primitives/Thread.js";
+import { ThreadPool } from "../src/primitives/ThreadPool.js";
 
 async function main() {
     console.log("🎯 Тестирование стрелочных функций\n");

@@ -1,23 +1,38 @@
 {
-  "name": "parallel.js",
+  "name": "stardust-parallel-js",
   "version": "1.0.0",
-  "description": "",
+  "description": "Simple parallel execution library for Node.js using Worker Threads. Execute CPU-intensive tasks with thread pools and isolated workers. Supports both regular and arrow functions.",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "files": [
-    "tests",
-    "eslint.config.mjs",
-    "jest.config.mjs",
-    "tsconfig.json",
+    "dist",
     "README.md"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/b1411/parallel.js.git"
+  },
   "type": "module",
   "scripts": {
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "build": "tsc -p ."
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "parallel",
+    "worker",
+    "threads",
+    "worker-threads",
+    "pool",
+    "threadpool",
+    "async",
+    "concurrent",
+    "cpu",
+    "performance",
+    "multithread",
+    "typescript"
+  ],
+  "author": "b1411",
+  "license": "MIT",
   "packageManager": "pnpm@10.23.0",
   "devDependencies": {
     "@eslint/js": "^9.39.2",

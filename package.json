@@ -1,6 +1,6 @@
 {
   "name": "stardust-parallel-js",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Simple parallel execution library for Node.js using Worker Threads. Execute CPU-intensive tasks with thread pools and isolated workers. Supports both regular and arrow functions.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

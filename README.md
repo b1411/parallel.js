@@ -9,79 +9,81 @@
 [![Bundle Size](https://img.shields.io/badge/bundle%20size-9.3kB-brightgreen)](https://www.npmjs.com/package/stardust-parallel-js)
 [![GitHub stars](https://img.shields.io/github/stars/b1411/stardust-parallel-js.svg?style=social)](https://github.com/b1411/stardust-parallel-js)
 
-**Ускорьте свои Node.js приложения до 3x** с помощью простого API для параллельного выполнения задач!
+> 📖 **Other languages:** [Русский](./README.ru.md)
 
-Библиотека для параллельного выполнения JavaScript/TypeScript функций с использованием Worker Threads в Node.js.
+**Speed up your Node.js applications up to 3x** with a simple API for parallel task execution!
 
-## 🚀 Производительность
+A library for parallel execution of JavaScript/TypeScript functions using Worker Threads in Node.js.
 
-Реальные бенчмарки на 4-ядерном CPU:
+## 🚀 Performance
 
-| Задача | Последовательно | Параллельно (4 потока) | Ускорение |
-|--------|----------------|------------------------|-----------|
-| **Вычисление Fibonacci(35-42)** | 5113 мс | 2606 мс | **1.96x** 🔥 |
-| **Обработка 50 элементов** | 936 мс | 344 мс | **2.72x** ⚡ |
+Real benchmarks on 4-core CPU:
 
-> 💡 **Результат**: до **63% улучшения** производительности на CPU-интенсивных задачах!
+| Task | Sequential | Parallel (4 workers) | Speedup |
+|------|-----------|---------------------|---------|
+| **Fibonacci(35-42) computation** | 5113 ms | 2606 ms | **1.96x** 🔥 |
+| **Processing 50 items** | 936 ms | 344 ms | **2.72x** ⚡ |
 
-## ✨ Возможности
+> 💡 **Result**: up to **63% performance improvement** on CPU-intensive tasks!
 
-- 🚀 **До 3x быстрее** - реальное ускорение на многоядерных процессорах
-- 💡 **Простой API** - начните использовать за 2 минуты
-- 🔄 **Пул потоков** - эффективное управление ресурсами
-- ⚡ **Отдельные потоки** - для разовых задач
-- 📦 **TypeScript** - полная поддержка из коробки
-- 🛡️ **Надежность** - автоматическое восстановление упавших потоков
-- 🎯 **Простота** - работает как обычный `map()`, но параллельно
+## ✨ Features
 
-## 📦 Установка
+- 🚀 **Up to 3x faster** - real speedup on multi-core processors
+- 💡 **Simple API** - start using in 2 minutes
+- 🔄 **Thread pool** - efficient resource management
+- ⚡ **Single threads** - for one-off tasks
+- 📦 **TypeScript** - full support out of the box
+- 🛡️ **Reliability** - automatic recovery of crashed threads
+- 🎯 **Simplicity** - works like regular `map()`, but parallel
+
+## 📦 Installation
 
 ```bash
 npm install stardust-parallel-js
-# или
+# or
 pnpm install stardust-parallel-js
-# или
+# or
 yarn add stardust-parallel-js
 ```
 
-## 🎯 Быстрый старт
+## 🎯 Quick Start
 
-**За 30 секунд** вы можете ускорить обработку массивов в 2-3 раза:
+**In 30 seconds** you can speed up array processing by 2-3x:
 
 ```typescript
 import { ThreadPool } from 'stardust-parallel-js';
 
 const pool = new ThreadPool(4);
 
-// Обычный код - медленно 🐌
+// Regular code - slow 🐌
 const results = data.map(item => heavyComputation(item));
 
-// С stardust-parallel-js - быстро! ⚡
+// With stardust-parallel-js - fast! ⚡
 const results = await pool.map(data, item => heavyComputation(item));
 
 await pool.terminate();
 ```
 
-**Вот и всё!** Ваш код теперь работает параллельно на всех ядрах процессора.
+**That's it!** Your code now runs in parallel on all CPU cores.
 
-## 📚 Использование
+## 📚 Usage
 
-### ThreadPool - Пул потоков (рекомендуется)
+### ThreadPool - Thread pool (recommended)
 
-Используйте `ThreadPool` для обработки множества задач с максимальной эффективностью:
+Use `ThreadPool` to process multiple tasks with maximum efficiency:
 
 ```typescript
 import { ThreadPool } from 'stardust-parallel-js';
 
-// Создаем пул из 4 потоков (по числу ядер CPU)
+// Create a pool of 4 threads (matching CPU cores)
 const pool = new ThreadPool(4);
 
-// 🎯 Обработка массива - как обычный map(), но параллельно!
+// 🎯 Process array - like regular map(), but parallel!
 const numbers = [1, 2, 3, 4, 5, 6, 7, 8];
 const squares = await pool.map(numbers, (n: number) => n * n);
 console.log(squares); // [1, 4, 9, 16, 25, 36, 49, 64]
 
-// 💪 CPU-интенсивные вычисления
+// 💪 CPU-intensive computations
 const result = await pool.execute(
   (n: number) => {
     let sum = 0;
@@ -93,18 +95,18 @@ const result = await pool.execute(
   [1000000]
 );
 
-// Освобождаем ресурсы
+// Release resources
 await pool.terminate();
 ```
 
-### Thread - Отдельный поток (для простых задач)
+### Thread - Single thread (for simple tasks)
 
-Используйте `Thread` для разовых операций:
+Use `Thread` for one-off operations:
 
 ```typescript
 import { Thread } from 'stardust-parallel-js';
 
-// Запустить и дождаться результата
+// Start and wait for result
 const thread = new Thread(
   (text: string) => text.toUpperCase(),
   ['hello world']
@@ -113,14 +115,14 @@ const thread = new Thread(
 const result = await thread.join();
 console.log(result); // "HELLO WORLD"
 
-// Стрелочные функции работают!
+// Arrow functions work!
 const thread2 = new Thread(x => x * 2, [21]);
 console.log(await thread2.join()); // 42
 ```
 
-## 💡 Примеры из реальной жизни
+## 💡 Real-World Examples
 
-### Обработка изображений
+### Image Processing
 
 ```typescript
 import { ThreadPool } from 'stardust-parallel-js';
@@ -128,24 +130,24 @@ import { ThreadPool } from 'stardust-parallel-js';
 const pool = new ThreadPool(8);
 const images = ['img1.jpg', 'img2.jpg', /* ... */ 'img100.jpg'];
 
-// Обрабатываем 100 изображений параллельно
+// Process 100 images in parallel
 const processed = await pool.map(images, (path: string) => {
   const fs = require('fs');
   const sharp = require('sharp');
-  // Сложная обработка изображения
+  // Complex image processing
   return processImage(path);
 });
 
 await pool.terminate();
 ```
 
-### Парсинг больших данных
+### Parsing Large Data
 
 ```typescript
 const pool = new ThreadPool(4);
 const chunks = splitDataIntoChunks(bigData, 1000);
 
-// Парсим каждый чунк параллельно
+// Parse each chunk in parallel
 const parsed = await pool.map(chunks, (chunk: any[]) => {
   return chunk.map(item => parseComplexData(item));
 });
@@ -153,7 +155,7 @@ const parsed = await pool.map(chunks, (chunk: any[]) => {
 await pool.terminate();
 ```
 
-### Вычисления и аналитика
+### Calculations and Analytics
 
 ```typescript
 const pool = new ThreadPool(4);
@@ -169,9 +171,9 @@ const results = await pool.map([35, 36, 37, 38, 39, 40], n => {
 await pool.terminate();
 ```
 
-## 📊 Бенчмарки
+## 📊 Benchmarks
 
-Запустите сами и убедитесь в производительности:
+Run yourself and see the performance:
 
 ```bash
 npm run build
@@ -184,35 +186,32 @@ npx tsx benchmarks/data-processing.ts
 ### ThreadPool
 
 #### `constructor(size: number)`
-Создает пул потоков заданного размера.
+Creates a thread pool of the specified size.
 
 ```typescript
 const pool = new ThreadPool(4);
 ```
 
 #### `execute<TArgs, TResult>(fn: (...args: TArgs) => TResult, args?: TArgs): Promise<TResult>`
-Выполняет функцию в доступном потоке из пула.
+Executes a function in an available thread from the pool.
 
 ```typescript
-const result = await pool.execute(
+const result = await pool.execute((x: number) => x * x, [5]);
+```
+
 #### `map<T, R>(items: T[], fn: (item: T) => R): Promise<R[]>`
-Применяет функцию к каждому элементу массива параллельно.
+Applies a function to each array element in parallel.
 
 ```typescript
-// Стрелочная функция
+// Arrow function
 const results = await pool.map([1, 2, 3], n => n * 2);
 
-// Обычная функция
+// Regular function
 const results2 = await pool.map([1, 2, 3], function(n) { return n * 2; });
-```# `map<T, R>(items: T[], fn: (item: T) => R): Promise<R[]>`
-Применяет функцию к каждому элементу массива параллельно.
-
-```typescript
-const results = await pool.map([1, 2, 3], (n) => n * 2);
 ```
 
 #### `terminate(): Promise<void>`
-Останавливает все потоки и освобождает ресурсы.
+Stops all threads and releases resources.
 
 ```typescript
 await pool.terminate();
@@ -221,91 +220,91 @@ await pool.terminate();
 ### Thread
 
 #### `constructor<T, TArgs>(fn: (...args: TArgs) => T, args?: TArgs)`
-Создает новый поток для выполнения функции.
+Creates a new thread to execute a function.
 
 ```typescript
 const thread = new Thread((x: number) => x * x, [5]);
 ```
 
 #### `join(): Promise<T>`
-Ожидает завершения выполнения и возвращает результат. Автоматически завершает поток.
+Waits for execution to complete and returns the result. Automatically terminates the thread.
 
 ```typescript
 const result = await thread.join();
 ```
 
-## ⚠️ Важные замечания
+## ⚠️ Important Notes
 
-- 🔒 Функции выполняются в изолированном контексте (отдельный Worker Thread)
-- 📦 Аргументы и результаты должны быть сериализуемыми
-- 🚫 Замыкания не работают - функции не имеют доступа к внешним переменным
-- ✅ Поддерживаются обычные и стрелочные функции
-- ✅ `require()` доступен внутри функций для использования Node.js модулей
-- ⚡ Лучше всего подходит для CPU-интенсивных задач (вычисления, обработка данных)
-- 💡 Для I/O операций (чтение файлов, сеть) используйте async/await вместо потоков
+- 🔒 Functions execute in an isolated context (separate Worker Thread)
+- 📦 Arguments and results must be serializable
+- 🚫 Closures don't work - functions have no access to external variables
+- ✅ Regular and arrow functions are supported
+- ✅ `require()` is available inside functions for using Node.js modules
+- ⚡ Best suited for CPU-intensive tasks (calculations, data processing)
+- 💡 For I/O operations (reading files, network) use async/await instead of threads
 
-## 🎯 Когда использовать?
+## 🎯 When to Use?
 
-**✅ Используйте stardust-parallel-js когда:**
-- Обрабатываете большие массивы данных
-- Выполняете сложные вычисления
-- Парсите или трансформируете данные
-- Обрабатываете изображения/видео
-- Нужно использовать все ядра CPU
+**✅ Use stardust-parallel-js when:**
+- Processing large data arrays
+- Performing complex calculations
+- Parsing or transforming data
+- Processing images/video
+- Need to utilize all CPU cores
 
-**❌ Не используйте когда:**
-- Простые операции (быстрее выполнить последовательно)
-- I/O операции (файлы, сеть, БД) - они уже асинхронные
-- Работаете с DOM (только в Node.js)
+**❌ Don't use when:**
+- Simple operations (faster to execute sequentially)
+- I/O operations (files, network, DB) - they're already asynchronous
+- Working with DOM (Node.js only)
 
-## 📈 Как выбрать размер пула?
+## 📈 How to Choose Pool Size?
 
 ```typescript
 import os from 'os';
 
-// Оптимально: количество CPU ядер
+// Optimal: number of CPU cores
 const pool = new ThreadPool(os.cpus().length);
 
-// Для CPU-интенсивных задач
-const pool = new ThreadPool(os.cpus().length - 1); // оставить 1 ядро для системы
+// For CPU-intensive tasks
+const pool = new ThreadPool(os.cpus().length - 1); // leave 1 core for system
 
-// Для смешанной нагрузки
+// For mixed workload
 const pool = new ThreadPool(os.cpus().length * 2);
 ```
 
-## 🤝 Сравнение с альтернативами
+## 🤝 Comparison with Alternatives
 
-| Решение | Простота | Производительность | TypeScript | Размер |
-|---------|----------|-------------------|------------|--------|
-| **stardust-parallel-js** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ✅ Полная | 9.3kB |
-| worker_threads | ⭐⭐ | ⭐⭐⭐⭐⭐ | ⚠️ Частичная | Встроено |
-| cluster | ⭐⭐ | ⭐⭐⭐ | ⚠️ Частичная | Встроено |
-| child_process | ⭐ | ⭐⭐ | ❌ Нет | Встроено |
+| Solution | Simplicity | Performance | TypeScript | Size |
+|----------|-----------|-------------|------------|------|
+| **stardust-parallel-js** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ✅ Full | 9.3kB |
+| worker_threads | ⭐⭐ | ⭐⭐⭐⭐⭐ | ⚠️ Partial | Built-in |
+| cluster | ⭐⭐ | ⭐⭐⭐ | ⚠️ Partial | Built-in |
+| child_process | ⭐ | ⭐⭐ | ❌ No | Built-in |
 
 ## 🚀 Roadmap
 
-- [ ] Поддержка transferable objects для больших данных
-- [ ] Автоматический выбор оптимального размера пула
-- [ ] Приоритизация задач
-- [ ] Мониторинг и статистика
-- [ ] Поддержка async функций в потоках
+- [ ] Support for transferable objects for large data
+- [ ] Automatic selection of optimal pool size
+- [ ] Task prioritization
+- [ ] Monitoring and statistics
+- [ ] Support for async functions in threads
 
-## 💬 Обратная связь
+## 💬 Feedback
 
-Нашли баг? Есть идея? [Создайте issue](https://github.com/b1411/stardust-parallel-js/issues)!
+Found a bug? Have an idea? [Create an issue](https://github.com/b1411/stardust-parallel-js/issues)!
 
-⭐ Если библиотека помогла вам - поставьте звезду на [GitHub](https://github.com/b1411/stardust-parallel-js)!
+⭐ If the library helped you - give it a star on [GitHub](https://github.com/b1411/stardust-parallel-js)!
 
-## 📦 Требования
+## 📦 Requirements
 
-- Node.js >= 14.0.0 (с поддержкой Worker Threads)
+- Node.js >= 14.0.0 (with Worker Threads support)
 
-## 📄 Лицензия
+## 📄 License
 
 MIT © [b1411](https://github.com/b1411)
 
 ---
 
 <p align="center">
-  Сделано с ❤️ для Node.js сообщества
+  Made with ❤️ for the Node.js community
 </p>

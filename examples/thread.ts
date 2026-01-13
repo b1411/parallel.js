@@ -1,4 +1,4 @@
-import { Thread } from "../src/Thread.js";
+import { Thread } from "../src/index";
 
 async function main() {
     console.log("🚀 Запуск примера с потоками...\n");

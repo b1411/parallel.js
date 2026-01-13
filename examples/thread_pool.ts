@@ -1,4 +1,4 @@
-import { ThreadPool } from "../src/ThreadPool.js";
+import { ThreadPool } from "../src/index";
 
 async function main() {
     console.log("🚀 Запуск примера с пулом потоков...\n");
@@ -10,7 +10,7 @@ async function main() {
     // Задача 1: Вычисление чисел Фибоначчи для массива значений
     console.log("⏳ Вычисляем числа Фибоначчи параллельно...");
     const fibNumbers = [35, 36, 37, 38, 39, 40];
-    
+
     const fibStart = Date.now();
     const fibResults = await pool.map(fibNumbers, function (n: number) {
         function fibonacci(num: number): number {
@@ -22,7 +22,7 @@ async function main() {
     const fibDuration = Date.now() - fibStart;
 
     console.log("✨ Результаты Фибоначчи:");
-    fibResults.forEach(({ n, result }) => {
+    fibResults.forEach(({ n, result }: { n: number; result: number; duration: number }) => {
         console.log(`   Фибоначчи(${n}) = ${result}`);
     });
     console.log(`   ⏱️  Общее время: ${fibDuration}мс\n`);
@@ -40,7 +40,7 @@ async function main() {
             if (n < 2) return false;
             if (n === 2) return true;
             if (n % 2 === 0) return false;
-            
+
             const sqrt = Math.sqrt(n);
             for (let i = 3; i <= sqrt; i += 2) {
                 if (n % i === 0) return false;
@@ -52,7 +52,7 @@ async function main() {
     const primeDuration = Date.now() - primeStart;
 
     console.log("✨ Результаты проверки на простоту:");
-    primeResults.forEach(({ num, isPrime }) => {
+    primeResults.forEach(({ num, isPrime }: { num: number; isPrime: boolean }) => {
         console.log(`   ${num}: ${isPrime ? '✓ Простое' : '✗ Составное'}`);
     });
     console.log(`   ⏱️  Общее время: ${primeDuration}мс\n`);
@@ -76,7 +76,7 @@ async function main() {
     const factDuration = Date.now() - factStart;
 
     console.log("✨ Результаты факториалов:");
-    factResults.forEach(({ n, result }) => {
+    factResults.forEach(({ n, result }: { n: number; result: number; }) => {
         console.log(`   ${n}! = ${result.toExponential(2)}`);
     });
     console.log(`   ⏱️  Общее время: ${factDuration}мс\n`);
@@ -98,19 +98,21 @@ async function main() {
         const chars = text.length;
         const vowels = (text.match(/[aeiouAEIOU]/g) || []).length;
         const consonants = (text.match(/[bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ]/g) || []).length;
-        
-        return { 
+
+        return {
             preview: text.substring(0, 30) + "...",
-            words, 
-            chars, 
-            vowels, 
-            consonants 
+            words,
+            chars,
+            vowels,
+            consonants
         };
     });
     const textDuration = Date.now() - textStart;
 
     console.log("✨ Результаты обработки текста:");
-    textResults.forEach(({ preview, words, chars, vowels, consonants }) => {
+    textResults.forEach(({ preview, words, chars, vowels, consonants }: {
+        preview: string; words: number; chars: number; vowels: number; consonants: number;
+    }) => {
         console.log(`   "${preview}"`);
         console.log(`      Слов: ${words}, Символов: ${chars}, Гласных: ${vowels}, Согласных: ${consonants}`);
     });
@@ -127,7 +129,7 @@ async function main() {
     // Массивная параллельная обработка
     console.log("\n⚡ Тест производительности: 100 задач параллельно...");
     const massiveTasks = Array.from({ length: 100 }, (_, i) => i + 1);
-    
+
     const massiveStart = Date.now();
     const massiveResults = await pool.map(massiveTasks, function (num: number) {
         // Искусственная CPU-интенсивная задача

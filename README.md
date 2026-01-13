@@ -1,5 +1,9 @@
 # parallel.js
 
+[![npm version](https://img.shields.io/npm/v/stardust-parallel-js.svg)](https://www.npmjs.com/package/stardust-parallel-js)
+[![npm downloads](https://img.shields.io/npm/dm/stardust-parallel-js.svg)](https://www.npmjs.com/package/stardust-parallel-js)
+[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/MIT)
+
 Библиотека для параллельного выполнения JavaScript/TypeScript функций с использованием Worker Threads в Node.js.
 
 ## Возможности
@@ -14,10 +18,11 @@
 ## Установка
 
 ```bash
-npm install parallel.js
+npm install stardust-parallel-js
 # или
-pnpm install parallel.js
+pnpm install stardust-parallel-js
 # или
+yarn add stardust-parallel-js
 yarn add parallel.js
 ```
 

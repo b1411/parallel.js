@@ -1,6 +1,6 @@
 {
   "name": "stardust-parallel-js",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "description": "Simple parallel execution library for Node.js using Worker Threads. Execute CPU-intensive tasks with thread pools and isolated workers. Supports both regular and arrow functions.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -19,7 +19,7 @@
   "scripts": {
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
-    "build": "tsc -p ."
+    "build": "tsc -p tsconfig.json && tsc-alias -p tsconfig.json"
   },
   "keywords": [
     "parallel",
@@ -45,6 +45,7 @@
     "eslint": "^9.39.2",
     "jest": "^30.2.0",
     "ts-jest": "^29.4.6",
+    "tsc-alias": "^1.8.16",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.53.0"

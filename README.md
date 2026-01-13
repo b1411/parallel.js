@@ -1,13 +1,13 @@
-# ⚡ parallel.js
+# ⚡ stardust-parallel-js
 
 [![npm version](https://img.shields.io/npm/v/stardust-parallel-js.svg)](https://www.npmjs.com/package/stardust-parallel-js)
 [![npm downloads](https://img.shields.io/npm/dm/stardust-parallel-js.svg)](https://www.npmjs.com/package/stardust-parallel-js)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Coverage](https://img.shields.io/badge/coverage-77%25-yellowgreen.svg)](https://github.com/b1411/parallel.js)
+[![Coverage](https://img.shields.io/badge/coverage-77%25-yellowgreen.svg)](https://github.com/b1411/stardust-parallel-js)
 [![Node.js Version](https://img.shields.io/node/v/stardust-parallel-js.svg)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue.svg)](https://www.typescriptlang.org/)
 [![Bundle Size](https://img.shields.io/badge/bundle%20size-9.3kB-brightgreen)](https://www.npmjs.com/package/stardust-parallel-js)
-[![GitHub stars](https://img.shields.io/github/stars/b1411/parallel.js.svg?style=social)](https://github.com/b1411/parallel.js)
+[![GitHub stars](https://img.shields.io/github/stars/b1411/stardust-parallel-js.svg?style=social)](https://github.com/b1411/stardust-parallel-js)
 
 **Ускорьте свои Node.js приложения до 3x** с помощью простого API для параллельного выполнения задач!
 
@@ -49,14 +49,14 @@ yarn add stardust-parallel-js
 **За 30 секунд** вы можете ускорить обработку массивов в 2-3 раза:
 
 ```typescript
-import { ThreadPool } from 'parallel.js';
+import { ThreadPool } from 'stardust-parallel-js';
 
 const pool = new ThreadPool(4);
 
 // Обычный код - медленно 🐌
 const results = data.map(item => heavyComputation(item));
 
-// С parallel.js - быстро! ⚡
+// С stardust-parallel-js - быстро! ⚡
 const results = await pool.map(data, item => heavyComputation(item));
 
 await pool.terminate();
@@ -71,7 +71,7 @@ await pool.terminate();
 Используйте `ThreadPool` для обработки множества задач с максимальной эффективностью:
 
 ```typescript
-import { ThreadPool } from 'parallel.js';
+import { ThreadPool } from 'stardust-parallel-js';
 
 // Создаем пул из 4 потоков (по числу ядер CPU)
 const pool = new ThreadPool(4);
@@ -102,7 +102,7 @@ await pool.terminate();
 Используйте `Thread` для разовых операций:
 
 ```typescript
-import { Thread } from 'parallel.js';
+import { Thread } from 'stardust-parallel-js';
 
 // Запустить и дождаться результата
 const thread = new Thread(
@@ -123,7 +123,7 @@ console.log(await thread2.join()); // 42
 ### Обработка изображений
 
 ```typescript
-import { ThreadPool } from 'parallel.js';
+import { ThreadPool } from 'stardust-parallel-js';
 
 const pool = new ThreadPool(8);
 const images = ['img1.jpg', 'img2.jpg', /* ... */ 'img100.jpg'];
@@ -246,7 +246,7 @@ const result = await thread.join();
 
 ## 🎯 Когда использовать?
 
-**✅ Используйте parallel.js когда:**
+**✅ Используйте stardust-parallel-js когда:**
 - Обрабатываете большие массивы данных
 - Выполняете сложные вычисления
 - Парсите или трансформируете данные
@@ -277,7 +277,7 @@ const pool = new ThreadPool(os.cpus().length * 2);
 
 | Решение | Простота | Производительность | TypeScript | Размер |
 |---------|----------|-------------------|------------|--------|
-| **parallel.js** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ✅ Полная | 9.3kB |
+| **stardust-parallel-js** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ✅ Полная | 9.3kB |
 | worker_threads | ⭐⭐ | ⭐⭐⭐⭐⭐ | ⚠️ Частичная | Встроено |
 | cluster | ⭐⭐ | ⭐⭐⭐ | ⚠️ Частичная | Встроено |
 | child_process | ⭐ | ⭐⭐ | ❌ Нет | Встроено |
@@ -292,9 +292,9 @@ const pool = new ThreadPool(os.cpus().length * 2);
 
 ## 💬 Обратная связь
 
-Нашли баг? Есть идея? [Создайте issue](https://github.com/b1411/parallel.js/issues)!
+Нашли баг? Есть идея? [Создайте issue](https://github.com/b1411/stardust-parallel-js/issues)!
 
-⭐ Если библиотека помогла вам - поставьте звезду на [GitHub](https://github.com/b1411/parallel.js)!
+⭐ Если библиотека помогла вам - поставьте звезду на [GitHub](https://github.com/b1411/stardust-parallel-js)!
 
 ## 📦 Требования
 

@@ -292,7 +292,7 @@ const pool = new ThreadPool(os.cpus().length * 2);
 
 ## 💬 Обратная связь
 
-Нашли баг? Есть идея? [Создайте issue](https://github.com/b1411/stardust-parallel-js/issues)!
+Нашли баг? Есть идея? [Создайте issue](https://github.com/b1411/parallel.js)!
 
 ⭐ Если библиотека помогла вам - поставьте звезду на [GitHub](https://github.com/b1411/stardust-parallel-js)!
 

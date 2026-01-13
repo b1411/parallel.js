@@ -75,6 +75,11 @@ const thread = new Thread(
 // Ждем результат
 const result = await thread.join();
 console.log(result); // "HELLO WORLD"
+
+// Стрелочные функции также поддерживаются
+const thread2 = new Thread(x => x * 2, [21]);
+const result2 = await thread2.join();
+console.log(result2); // 42
 ```
 
 ## API
@@ -93,12 +98,16 @@ const pool = new ThreadPool(4);
 
 ```typescript
 const result = await pool.execute(
-  (a: number, b: number) => a + b,
-  [5, 3]
-);
-```
-
 #### `map<T, R>(items: T[], fn: (item: T) => R): Promise<R[]>`
+Применяет функцию к каждому элементу массива параллельно.
+
+```typescript
+// Стрелочная функция
+const results = await pool.map([1, 2, 3], n => n * 2);
+
+// Обычная функция
+const results2 = await pool.map([1, 2, 3], function(n) { return n * 2; });
+```# `map<T, R>(items: T[], fn: (item: T) => R): Promise<R[]>`
 Применяет функцию к каждому элементу массива параллельно.
 
 ```typescript
@@ -143,27 +152,46 @@ const processed = await pool.map(data, (item: number) => {
   // Сложная обработка каждого элемента
   return Math.sin(item) * Math.cos(item);
 });
-
-await pool.terminate();
-```
-
-### Параллельные HTTP запросы (концептуально)
+### Вычисление чисел Фибоначчи
 
 ```typescript
 import { ThreadPool } from 'parallel.js';
 
-const pool = new ThreadPool(5);
+const pool = new ThreadPool(4);
 
-const urls = [
-  'https://api.example.com/data1',
-  'https://api.example.com/data2',
-  'https://api.example.com/data3',
-];
+const numbers = [35, 36, 37, 38, 39, 40];
 
-const results = await pool.map(urls, async (url: string) => {
-  // Примечание: в Worker Threads нужно импортировать fetch отдельно
-  const response = await fetch(url);
-  return response.json();
+const results = await pool.map(numbers, n => {
+  function fibonacci(num) {
+    if (num <= 1) return num;
+    return fibonacci(num - 1) + fibonacci(num - 2);
+  }
+  return fibonacci(n);
+});
+
+console.log(results); // [9227465, 14930352, 24157817, ...]
+
+await pool.terminate();
+```
+
+### Использование встроенных модулей Node.js
+
+```typescript
+import { ThreadPool } from 'parallel.js';
+
+const pool = new ThreadPool(4);
+
+// require() доступен внутри функций
+const result = await pool.execute(() => {
+  const fs = require('fs');
+  const path = require('path');
+  return path.join('folder', 'file.txt');
+});
+
+console.log(result); // 'folder/file.txt' или 'folder\\file.txt'
+
+await pool.terminate();
+```eturn response.json();
 });
 
 await pool.terminate();
@@ -173,7 +201,9 @@ await pool.terminate();
 
 - 🔒 Функции, передаваемые в потоки, выполняются в изолированном контексте
 - 📦 Все аргументы и результаты должны быть сериализуемыми (передаются через структурированное клонирование)
-- 🚫 Нельзя использовать замыкания - функции не имеют доступа к внешним переменным
+- 🚫 Нельзя использовать замыкания - функции не имеют доступа к внешним переменным из основного потока
+- ✅ Поддерживаются как обычные функции (`function`), так и стрелочные (`=>`)
+- ✅ `require()` и встроенные модули Node.js доступны внутри функций
 - ⚡ Worker Threads лучше всего подходят для CPU-интенсивных задач
 
 ## Требования

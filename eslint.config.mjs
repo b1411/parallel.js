@@ -34,4 +34,8 @@ export default defineConfig(
             "@typescript-eslint/no-unused-vars": "off",
         },
     },
+    // Ignore dist and scripts
+    {
+        ignores: ["dist/**/*", "coverage/**/*", "scripts/**/*.mjs", "examples/**/*"],
+    },
 );

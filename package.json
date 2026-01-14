@@ -21,7 +21,10 @@
     "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
     "build": "tsc -p tsconfig.json && tsc-alias -p tsconfig.json",
     "update-badge": "node scripts/update-coverage-badge.mjs",
-    "test:badge": "npm run test:coverage && npm run update-badge"
+    "test:badge": "npm run test:coverage && npm run update-badge",
+    "lint": "eslint .",
+    "release": "semantic-release",
+    "prepare": "npm run build"
   },
   "keywords": [
     "parallel",

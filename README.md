@@ -3,7 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/stardust-parallel-js.svg)](https://www.npmjs.com/package/stardust-parallel-js)
 [![npm downloads](https://img.shields.io/npm/dm/stardust-parallel-js.svg)](https://www.npmjs.com/package/stardust-parallel-js)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Coverage](https://img.shields.io/badge/coverage-77%25-yellowgreen.svg)](https://github.com/b1411/parallel.js)
+[![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/b1411/5e96225d1a326e23a38edc41799b1ead/raw/coverage.json)](https://github.com/b1411/parallel.js)
 [![Node.js Version](https://img.shields.io/node/v/stardust-parallel-js.svg)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue.svg)](https://www.typescriptlang.org/)
 [![Bundle Size](https://img.shields.io/bundlephobia/minzip/stardust-parallel-js)](https://bundlephobia.com/package/stardust-parallel-js)

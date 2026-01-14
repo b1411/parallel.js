@@ -6,7 +6,7 @@
 [![Coverage](https://img.shields.io/badge/coverage-77%25-yellowgreen.svg)](https://github.com/b1411/stardust-parallel-js)
 [![Node.js Version](https://img.shields.io/node/v/stardust-parallel-js.svg)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue.svg)](https://www.typescriptlang.org/)
-[![Bundle Size](https://img.shields.io/badge/bundle%20size-9.3kB-brightgreen)](https://www.npmjs.com/package/stardust-parallel-js)
+[![Bundle Size](https://img.shields.io/bundlephobia/minzip/stardust-parallel-js)](https://bundlephobia.com/package/stardust-parallel-js)
 [![GitHub stars](https://img.shields.io/github/stars/b1411/stardust-parallel-js.svg?style=social)](https://github.com/b1411/stardust-parallel-js)
 
 > 📖 **Other languages:** [Русский](./README.ru.md)

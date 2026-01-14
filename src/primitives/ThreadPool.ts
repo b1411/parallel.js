@@ -1,10 +1,12 @@
-import { Worker } from "node:worker_threads";
+import { Worker, type Transferable } from "node:worker_threads";
 import { createWorker } from "@/utils/workerFactory.js";
 import { Queue } from "@datastructures-js/queue";
+import { extractTransferables } from "@/utils/extractTransferables.js";
 
 interface Task<T> {
     fn: string;
     args: unknown[];
+    transferables?: Transferable[];
     resolve: (value: T) => void;
     reject: (reason?: unknown) => void;
 }
@@ -22,9 +24,9 @@ export class ThreadPool {
     private initWorkers() {
         for (let i = 0; i < this.size; i++) {
             const worker = createWorker();
-            this.setupWorkerHandlers(worker);
-            this.workers.push(worker);
-            this.availableWorkers.push(worker);
+            this.setupWorkerHandlers(worker.worker);
+            this.workers.push(worker.worker);
+            this.availableWorkers.push(worker.worker);
         }
     }
 
@@ -60,9 +62,9 @@ export class ThreadPool {
         crashedWorker.terminate();
 
         const newWorker = createWorker();
-        this.setupWorkerHandlers(newWorker);
-        this.workers.push(newWorker);
-        this.availableWorkers.push(newWorker);
+        this.setupWorkerHandlers(newWorker.worker);
+        this.workers.push(newWorker.worker);
+        this.availableWorkers.push(newWorker.worker);
         this.processQueue();
     }
 
@@ -72,7 +74,7 @@ export class ThreadPool {
             const task = this.taskQueue.dequeue() as Task<unknown>;
 
             this.workerTasks.set(worker, task);
-            worker.postMessage({ fn: task.fn.toString(), args: task.args });
+            worker.postMessage({ fn: task.fn.toString(), args: task.args }, task.transferables || []);
         }
     }
 
@@ -84,6 +86,7 @@ export class ThreadPool {
             const task: Task<unknown> = {
                 fn: fn.toString(),
                 args,
+                transferables: extractTransferables(args),
                 resolve: resolve as (value: unknown) => void,
                 reject
             };

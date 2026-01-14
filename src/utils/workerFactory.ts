@@ -5,7 +5,7 @@
     Supports both regular and arrow functions.
 */
 
-import { Worker } from "node:worker_threads";
+import { Worker, type Transferable } from "node:worker_threads";
 
 const workerCode = `
             const { parentPort } = require('worker_threads');
@@ -52,5 +52,10 @@ const workerCode = `
 
 export function createWorker() {
     const worker = new Worker(workerCode, { eval: true });
-    return worker;
+    return {
+        worker,
+        run<R, TArgs extends unknown[] = unknown[]>(fn: (...args: TArgs) => R, args: TArgs = [] as unknown as TArgs, transferables?: Transferable[]) {
+            worker.postMessage({ fn: fn.toString(), args }, transferables || []);
+        }
+    }
 }

@@ -303,7 +303,6 @@ describe('Thread', () => {
 
         it('should work with Node.js built-in modules', async () => {
             const thread = new Thread(() => {
-                // eslint-disable-next-line @typescript-eslint/no-require-imports
                 const path = require('path');
                 return path.join('a', 'b');
             });
@@ -346,15 +345,12 @@ describe('Thread', () => {
         });
 
         it('should not access global variables from outer scope', async () => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (global as any).testVar = 42;
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const thread = new Thread(() => (global as any).testVar);
             const result = await thread.join();
             expect(result).toBeUndefined();
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             delete (global as any).testVar;
         });
 

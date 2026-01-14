@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // tests/ThreadPool.test.ts
 import { ThreadPool } from '../src/primitives/ThreadPool';
 
@@ -207,7 +205,7 @@ describe('ThreadPool', () => {
         it('should handle reference errors', async () => {
             await expect(
                 pool.execute(() => {
-                    // @ts-expect-error - testing undefined variable
+                    // @ts-expect-error - intentionally testing undefined variable
                     return undefinedVariable;
                 })
             ).rejects.toThrow();
@@ -227,7 +225,6 @@ describe('ThreadPool', () => {
             await expect(
                 pool.execute(() => {
                     // Краш через null pointer
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     const obj: any = null;
                     return obj.property; // TypeError
                 })
@@ -248,10 +245,8 @@ describe('ThreadPool', () => {
             // Crash multiple workers
             const crashTasks = Array.from({ length: 5 }, () =>
                 pool.execute(() => {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     const obj: any = null;
-                    return obj.crash;
-                    // eslint-disable-next-line @typescript-eslint/no-empty-function
+                    obj.doesNotExist();
                 }).catch(() => { })
             );
 
@@ -352,13 +347,11 @@ describe('ThreadPool', () => {
             const tasks = Array.from({ length: 8 }, () =>
                 pool.execute(() => {
                     let sum = 0;
-                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     for (let i = 0; i < 3e7; i++) sum += i;
                     return Date.now(); // Возвращаем timestamp
                 })
             );
 
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const timestamps = await Promise.all(tasks);
             const endTime = Date.now();
 

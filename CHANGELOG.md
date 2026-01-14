@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-01-14
+
 ### Added
 - **Automatic Transferables Extraction**: Implemented `extractTransferables()` utility that automatically detects and extracts transferable objects (ArrayBuffer, TypedArrays, MessagePort, etc.) from function arguments
 - **Thread Class**: Simple API for running single tasks in worker threads with automatic transferables handling
@@ -47,4 +49,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automatic cleanup and resource management
 - Queue-based task distribution in ThreadPool
 
-[Unreleased]: https://github.com/b1411/parallel.js/compare/v1.0.10...HEAD
+[Unreleased]: https://github.com/b1411/parallel.js/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/b1411/parallel.js/compare/v1.0.10...v1.1.0

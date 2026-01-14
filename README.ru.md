@@ -3,11 +3,11 @@
 [![npm version](https://img.shields.io/npm/v/stardust-parallel-js.svg)](https://www.npmjs.com/package/stardust-parallel-js)
 [![npm downloads](https://img.shields.io/npm/dm/stardust-parallel-js.svg)](https://www.npmjs.com/package/stardust-parallel-js)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Coverage](https://img.shields.io/badge/coverage-77%25-yellowgreen.svg)](https://github.com/b1411/stardust-parallel-js)
+[![Coverage](https://img.shields.io/badge/coverage-77%25-yellowgreen.svg)](https://github.com/b1411/parallel.js)
 [![Node.js Version](https://img.shields.io/node/v/stardust-parallel-js.svg)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue.svg)](https://www.typescriptlang.org/)
 [![Bundle Size](https://img.shields.io/badge/bundle%20size-9.3kB-brightgreen)](https://www.npmjs.com/package/stardust-parallel-js)
-[![GitHub stars](https://img.shields.io/github/stars/b1411/stardust-parallel-js.svg?style=social)](https://github.com/b1411/stardust-parallel-js)
+[![GitHub stars](https://img.shields.io/github/stars/b1411/stardust-parallel-js.svg?style=social)](https://github.com/b1411/parallel.js)
 
 > 📖 **Другие языки:** [English](./README.md)
 
@@ -294,7 +294,7 @@ const pool = new ThreadPool(os.cpus().length * 2);
 
 Нашли баг? Есть идея? [Создайте issue](https://github.com/b1411/parallel.js)!
 
-⭐ Если библиотека помогла вам - поставьте звезду на [GitHub](https://github.com/b1411/stardust-parallel-js)!
+⭐ Если библиотека помогла вам - поставьте звезду на [GitHub](https://github.com/b1411/parallel.js)!
 
 ## 📦 Требования
 

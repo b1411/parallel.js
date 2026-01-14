@@ -279,7 +279,7 @@ const pool = new ThreadPool(os.cpus().length * 2);
 
 ## Roadmap
 
-- [ ] Support for transferable objects for large data
+- [x] Support for transferable objects for large data
 - [ ] Automatic selection of optimal pool size
 - [ ] Task prioritization
 - [ ] Monitoring and statistics

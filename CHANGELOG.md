@@ -1,3 +1,13 @@
+# [1.2.0](https://github.com/b1411/parallel.js/compare/v1.1.0...v1.2.0) (2026-01-14)
+
+
+### Features
+
+* add Travis CI release automation ([e58f35d](https://github.com/b1411/parallel.js/commit/e58f35df4f9545be955afd98e801e43abe236b71))
+* add Travis CI with semantic-release automation ([151238a](https://github.com/b1411/parallel.js/commit/151238a041ccc64451b64a090213f8d6929ad8e5))
+* add Travis CI with semantic-release automation ([b675967](https://github.com/b1411/parallel.js/commit/b675967458095f2b902673d1dde1eec7c3d2afc5))
+* mark support for transferable objects in roadmap as complete ([c871ee8](https://github.com/b1411/parallel.js/commit/c871ee8adeb4305f9cd7d4347c2379fdb46a0e95))
+
 # Changelog
 
 All notable changes to this project will be documented in this file.

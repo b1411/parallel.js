@@ -9,34 +9,32 @@
 [![Bundle Size](https://img.shields.io/bundlephobia/minzip/stardust-parallel-js)](https://bundlephobia.com/package/stardust-parallel-js)
 [![GitHub stars](https://img.shields.io/github/stars/b1411/parallel.js.svg?style=social)](https://github.com/b1411/parallel.js)
 
-> 📖 **Other languages:** [Русский](./README.ru.md)
-
-**Speed up your Node.js applications up to 3x** with a simple API for parallel task execution!
+> **Other languages:** [Русский](./README.ru.md)
 
 A library for parallel execution of JavaScript/TypeScript functions using Worker Threads in Node.js.
 
-## 🚀 Performance
+## Performance
 
-Real benchmarks on 4-core CPU:
+Benchmarks on 4-core CPU:
 
 | Task | Sequential | Parallel (4 workers) | Speedup |
 |------|-----------|---------------------|---------|
-| **Fibonacci(35-42) computation** | 5113 ms | 2606 ms | **1.96x** 🔥 |
-| **Processing 50 items** | 936 ms | 344 ms | **2.72x** ⚡ |
+| **Fibonacci(35-42) computation** | 5113 ms | 2606 ms | **1.96x** |
+| **Processing 50 items** | 936 ms | 344 ms | **2.72x** |
 
-> 💡 **Result**: up to **63% performance improvement** on CPU-intensive tasks!
+> Performance improvement: up to 63% on CPU-intensive tasks.
 
-## ✨ Features
+## Features
 
-- 🚀 **Up to 3x faster** - real speedup on multi-core processors
-- 💡 **Simple API** - start using in 2 minutes
-- 🔄 **Thread pool** - efficient resource management
-- ⚡ **Single threads** - for one-off tasks
-- 📦 **TypeScript** - full support out of the box
-- 🛡️ **Reliability** - automatic recovery of crashed threads
-- 🎯 **Simplicity** - works like regular `map()`, but parallel
+- Real speedup on multi-core processors
+- Simple API for parallel task execution
+- Thread pool for efficient resource management
+- Single thread support for one-off tasks
+- Full TypeScript support
+- Automatic recovery of crashed threads
+- Array processing similar to `map()`, but parallel
 
-## 📦 Installation
+## Installation
 
 ```bash
 npm install stardust-parallel-js
@@ -46,27 +44,25 @@ pnpm install stardust-parallel-js
 yarn add stardust-parallel-js
 ```
 
-## 🎯 Quick Start
+## Quick Start
 
-**In 30 seconds** you can speed up array processing by 2-3x:
+Basic usage example:
 
 ```typescript
 import { ThreadPool } from 'stardust-parallel-js';
 
 const pool = new ThreadPool(4);
 
-// Regular code - slow 🐌
+// Sequential execution
 const results = data.map(item => heavyComputation(item));
 
-// With stardust-parallel-js - fast! ⚡
+// Parallel execution
 const results = await pool.map(data, item => heavyComputation(item));
 
 await pool.terminate();
 ```
 
-**That's it!** Your code now runs in parallel on all CPU cores.
-
-## 📚 Usage
+## Usage
 
 ### ThreadPool - Thread pool (recommended)
 
@@ -78,12 +74,12 @@ import { ThreadPool } from 'stardust-parallel-js';
 // Create a pool of 4 threads (matching CPU cores)
 const pool = new ThreadPool(4);
 
-// 🎯 Process array - like regular map(), but parallel!
+// Process array in parallel
 const numbers = [1, 2, 3, 4, 5, 6, 7, 8];
 const squares = await pool.map(numbers, (n: number) => n * n);
 console.log(squares); // [1, 4, 9, 16, 25, 36, 49, 64]
 
-// 💪 CPU-intensive computations
+// CPU-intensive computations
 const result = await pool.execute(
   (n: number) => {
     let sum = 0;
@@ -120,7 +116,7 @@ const thread2 = new Thread(x => x * 2, [21]);
 console.log(await thread2.join()); // 42
 ```
 
-## 💡 Real-World Examples
+## Examples
 
 ### Image Processing
 
@@ -171,9 +167,9 @@ const results = await pool.map([35, 36, 37, 38, 39, 40], n => {
 await pool.terminate();
 ```
 
-## 📊 Benchmarks
+## Benchmarks
 
-Run yourself and see the performance:
+Run benchmarks:
 
 ```bash
 npm run build
@@ -181,7 +177,7 @@ npx tsx benchmarks/cpu-intensive.ts
 npx tsx benchmarks/data-processing.ts
 ```
 
-## 🎓 API Reference
+## API Reference
 
 ### ThreadPool
 
@@ -233,31 +229,31 @@ Waits for execution to complete and returns the result. Automatically terminates
 const result = await thread.join();
 ```
 
-## ⚠️ Important Notes
+## Important Notes
 
-- 🔒 Functions execute in an isolated context (separate Worker Thread)
-- 📦 Arguments and results must be serializable
-- 🚫 Closures don't work - functions have no access to external variables
-- ✅ Regular and arrow functions are supported
-- ✅ `require()` is available inside functions for using Node.js modules
-- ⚡ Best suited for CPU-intensive tasks (calculations, data processing)
-- 💡 For I/O operations (reading files, network) use async/await instead of threads
+- Functions execute in an isolated context (separate Worker Thread)
+- Arguments and results must be serializable
+- Closures don't work - functions have no access to external variables
+- Regular and arrow functions are supported
+- `require()` is available inside functions for using Node.js modules
+- Best suited for CPU-intensive tasks (calculations, data processing)
+- For I/O operations (reading files, network) use async/await instead of threads
 
-## 🎯 When to Use?
+## When to Use
 
-**✅ Use stardust-parallel-js when:**
+**Use stardust-parallel-js when:**
 - Processing large data arrays
 - Performing complex calculations
 - Parsing or transforming data
 - Processing images/video
 - Need to utilize all CPU cores
 
-**❌ Don't use when:**
+**Don't use when:**
 - Simple operations (faster to execute sequentially)
 - I/O operations (files, network, DB) - they're already asynchronous
 - Working with DOM (Node.js only)
 
-## 📈 How to Choose Pool Size?
+## Choosing Pool Size
 
 ```typescript
 import os from 'os';
@@ -272,16 +268,16 @@ const pool = new ThreadPool(os.cpus().length - 1); // leave 1 core for system
 const pool = new ThreadPool(os.cpus().length * 2);
 ```
 
-## 🤝 Comparison with Alternatives
+## Comparison with Alternatives
 
 | Solution | Simplicity | Performance | TypeScript | Size |
 |----------|-----------|-------------|------------|------|
-| **stardust-parallel-js** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ✅ Full | 9.3kB |
-| worker_threads | ⭐⭐ | ⭐⭐⭐⭐⭐ | ⚠️ Partial | Built-in |
-| cluster | ⭐⭐ | ⭐⭐⭐ | ⚠️ Partial | Built-in |
-| child_process | ⭐ | ⭐⭐ | ❌ No | Built-in |
+| **stardust-parallel-js** | High | High | Full | 9.3kB |
+| worker_threads | Medium | High | Partial | Built-in |
+| cluster | Medium | Medium | Partial | Built-in |
+| child_process | Low | Low | No | Built-in |
 
-## 🚀 Roadmap
+## Roadmap
 
 - [ ] Support for transferable objects for large data
 - [ ] Automatic selection of optimal pool size
@@ -289,17 +285,15 @@ const pool = new ThreadPool(os.cpus().length * 2);
 - [ ] Monitoring and statistics
 - [ ] Support for async functions in threads
 
-## 💬 Feedback
+## Feedback
 
-Found a bug? Have an idea? [Create an issue](https://github.com/b1411/parallel.js)!
+Found a bug or have an idea? [Create an issue](https://github.com/b1411/parallel.js).
 
-⭐ If the library helped you - give it a star on [GitHub](https://github.com/b1411/parallel.js)!
-
-## 📦 Requirements
+## Requirements
 
 - Node.js >= 14.0.0 (with Worker Threads support)
 
-## 📄 License
+## License
 
 MIT © [b1411](https://github.com/b1411)
 
@@ -308,3 +302,5 @@ MIT © [b1411](https://github.com/b1411)
 <p align="center">
   Made with ❤️ for the Node.js community
 </p>
+
+

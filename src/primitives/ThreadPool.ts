@@ -1,6 +1,6 @@
 import { Worker, type Transferable } from "node:worker_threads";
 import { createWorker } from "@/utils/workerFactory.js";
-import { Queue } from "@datastructures-js/queue";
+import { Queue } from "@/datastructures/Queue.js";
 import { extractTransferables } from "@/utils/extractTransferables.js";
 
 interface Task<T> {

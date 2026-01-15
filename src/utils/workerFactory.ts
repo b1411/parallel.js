@@ -9,43 +9,48 @@ import { Worker, type Transferable } from "node:worker_threads";
 
 const workerCode = `
             const { parentPort } = require('worker_threads');
-            parentPort.on('message', ({ fn, args }) => {
+            parentPort.on('message', async ({ fn, args }) => {
                 try {
-                    // Remove __name helper calls added by TypeScript
                     let cleanFn = fn.replace(/__name\\([^)]+\\);?/g, '').trim();
                     
-                    // Convert arrow functions to regular functions
-                    // Handles: (a, b) => expr  or  (a, b) => { ... }
+                    // Detect async keyword
+                    const isAsync = /^async\\s+/.test(cleanFn);
+                    cleanFn = cleanFn.replace(/^async\\s+/, '');
+                    
+                    // Arrow function conversion
                     const arrowMatch = cleanFn.match(/^\\(([^)]*)\\)\\s*=>\\s*(.+)$/s);
                     if (arrowMatch) {
                         const params = arrowMatch[1];
                         const body = arrowMatch[2].trim();
                         
-                        // Check if body is wrapped in braces or is an expression
                         if (body.startsWith('{') && body.endsWith('}')) {
-                            cleanFn = \`function(\${params}) \${body}\`;
+                            cleanFn = \`\${isAsync ? 'async ' : ''}function(\${params}) \${body}\`;
                         } else {
-                            cleanFn = \`function(\${params}) { return \${body} }\`;
+                            cleanFn = \`\${isAsync ? 'async ' : ''}function(\${params}) { return \${body} }\`;
                         }
                     }
-                    // Handle single parameter arrow functions: x => expr
+                    
                     const singleArrowMatch = cleanFn.match(/^([a-zA-Z_$][a-zA-Z0-9_$]*)\\s*=>\\s*(.+)$/s);
                     if (singleArrowMatch) {
                         const param = singleArrowMatch[1];
                         const body = singleArrowMatch[2].trim();
                         
                         if (body.startsWith('{') && body.endsWith('}')) {
-                            cleanFn = \`function(\${param}) \${body}\`;
+                            cleanFn = \`\${isAsync ? 'async ' : ''}function(\${param}) \${body}\`;
                         } else {
-                            cleanFn = \`function(\${param}) { return \${body} }\`;
+                            cleanFn = \`\${isAsync ? 'async ' : ''}function(\${param}) { return \${body} }\`;
                         }
                     }
                     
                     const func = eval('(' + cleanFn + ')');
-                    const result = func(...args);
+                    const result = await func(...args);
                     parentPort.postMessage({ success: true, result });
                 } catch (error) {
-                    parentPort.postMessage({ success: false, error: error.message });
+                    if (error instanceof Error) {
+                        parentPort.postMessage({ success: false, error: { message: error.message, stack: error.stack } });
+                    } else {
+                        parentPort.postMessage({ success: false, error: { message: String(error) } });
+                    }
                 }
             });
         `;

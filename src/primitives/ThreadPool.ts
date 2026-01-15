@@ -31,13 +31,17 @@ export class ThreadPool {
     }
 
     private setupWorkerHandlers(worker: Worker) {
-        worker.on('message', (res: { success: boolean; result?: unknown; error?: string }) => {
+        worker.on('message', (res: { success: boolean; result?: unknown; error?: { message: string; stack?: string } }) => {
             const task = this.workerTasks.get(worker);
             if (!task) return;
             if (res.success) {
                 task.resolve(res.result);
             } else {
-                task.reject(new Error(res.error));
+                const error = new Error(res.error?.message || 'Unknown error');
+                if (res.error?.stack) {
+                    error.stack = res.error.stack;
+                }
+                task.reject(error);
             }
 
             this.workerTasks.delete(worker);

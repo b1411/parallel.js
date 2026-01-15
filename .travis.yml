@@ -12,7 +12,6 @@ cache:
 branches:
   only:
     - main
-    - develop
     - /^v\d+\.\d+\.\d+$/
 
 stages:

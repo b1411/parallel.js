@@ -782,4 +782,594 @@ describe('ThreadPool', () => {
             ).rejects.toThrow();
         });
     });
+
+    describe('Async functions support', () => {
+        beforeEach(() => {
+            pool = new ThreadPool(4);
+        });
+
+        it('should execute async function with simple computation', async () => {
+            const result = await pool.execute(async () => {
+                return await Promise.resolve(42);
+            });
+            expect(result).toBe(42);
+        });
+
+        it('should execute async function with parameters', async () => {
+            const result = await pool.execute(
+                async (a: number, b: number) => {
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    return a * b;
+                },
+                [6, 7]
+            );
+            expect(result).toBe(42);
+        });
+
+        it('should execute async arrow function with single parameter', async () => {
+            const result = await pool.execute(
+                async x => {
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    return x * 2;
+                },
+                [21]
+            );
+            expect(result).toBe(42);
+        });
+
+        it('should execute async arrow function with multiple parameters', async () => {
+            const result = await pool.execute(
+                async (a, b, c) => {
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    return a + b + c;
+                },
+                [10, 20, 12]
+            );
+            expect(result).toBe(42);
+        });
+
+        it('should execute async arrow function with implicit return', async () => {
+            const result = await pool.execute(async x => Promise.resolve(x * 2), [21]);
+            expect(result).toBe(42);
+        });
+
+        it('should handle async function with multiple awaits', async () => {
+            const result = await pool.execute(async (n: number) => {
+                const step1 = await Promise.resolve(n * 2);
+                const step2 = await Promise.resolve(step1 + 10);
+                const step3 = await Promise.resolve(step2 / 2);
+                return step3;
+            }, [16]);
+            expect(result).toBe(21);
+        });
+
+        it('should handle async function with Promise.all', async () => {
+            const result = await pool.execute(async (nums: number[]) => {
+                const promises = nums.map(n => Promise.resolve(n * 2));
+                const results = await Promise.all(promises);
+                return results.reduce((sum, n) => sum + n, 0);
+            }, [[1, 2, 3, 4, 5]]);
+            expect(result).toBe(30);
+        });
+
+        it('should execute multiple async tasks concurrently', async () => {
+            const tasks = Array.from({ length: 10 }, (_, i) =>
+                pool.execute(async (x: number) => {
+                    await new Promise(resolve => setTimeout(resolve, 20));
+                    return x * 2;
+                }, [i])
+            );
+            const results = await Promise.all(tasks);
+            expect(results).toEqual([0, 2, 4, 6, 8, 10, 12, 14, 16, 18]);
+        });
+
+        it('should handle async functions with different return types', async () => {
+            const results = await Promise.all([
+                pool.execute(async (x: number) => {
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    return x ** 2;
+                }, [5]),
+                pool.execute(async (s: string) => {
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    return s.toUpperCase();
+                }, ['hello']),
+                pool.execute(async () => {
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    return [1, 2, 3];
+                }),
+                pool.execute(async (a: number, b: number) => {
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    return a + b;
+                }, [10, 20])
+            ]);
+            expect(results).toEqual([25, 'HELLO', [1, 2, 3], 30]);
+        });
+
+        it('should map async function over array', async () => {
+            const items = [1, 2, 3, 4, 5];
+            const results = await pool.map(items, async (x: number) => {
+                await new Promise(resolve => setTimeout(resolve, 10));
+                return x ** 2;
+            });
+            expect(results).toEqual([1, 4, 9, 16, 25]);
+        });
+
+        it('should map async function with complex transformation', async () => {
+            const items = ['apple', 'banana', 'cherry'];
+            const results = await pool.map(items, async (s: string) => {
+                await new Promise(resolve => setTimeout(resolve, 10));
+                return {
+                    word: s,
+                    length: s.length,
+                    upper: s.toUpperCase()
+                };
+            });
+            expect(results).toEqual([
+                { word: 'apple', length: 5, upper: 'APPLE' },
+                { word: 'banana', length: 6, upper: 'BANANA' },
+                { word: 'cherry', length: 6, upper: 'CHERRY' }
+            ]);
+        });
+
+        it('should handle async function errors', async () => {
+            await expect(
+                pool.execute(async () => {
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    throw new Error('Async error');
+                })
+            ).rejects.toThrow('Async error');
+        });
+
+        it('should continue working after async error', async () => {
+            await expect(
+                pool.execute(async () => {
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    throw new Error('Test error');
+                })
+            ).rejects.toThrow();
+
+            const result = await pool.execute(async () => {
+                await new Promise(resolve => setTimeout(resolve, 10));
+                return 42;
+            });
+            expect(result).toBe(42);
+        });
+
+        it('should handle multiple async errors', async () => {
+            const tasks = [
+                pool.execute(async () => {
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    throw new Error('Error 1');
+                }),
+                pool.execute(async () => {
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    return 1;
+                }),
+                pool.execute(async () => {
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    throw new Error('Error 2');
+                }),
+                pool.execute(async () => {
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    return 2;
+                })
+            ];
+
+            const results = await Promise.allSettled(tasks);
+
+            expect(results[0].status).toBe('rejected');
+            expect(results[1].status).toBe('fulfilled');
+            expect(results[2].status).toBe('rejected');
+            expect(results[3].status).toBe('fulfilled');
+
+            if (results[1].status === 'fulfilled') expect(results[1].value).toBe(1);
+            if (results[3].status === 'fulfilled') expect(results[3].value).toBe(2);
+        });
+
+        it('should handle async function with delayed computation', async () => {
+            const result = await pool.execute(
+                async (ms: number, value: number) => {
+                    await new Promise(resolve => setTimeout(resolve, ms));
+                    return value;
+                },
+                [50, 42]
+            );
+            expect(result).toBe(42);
+        });
+
+        it('should handle async function returning complex object', async () => {
+            const result = await pool.execute(async (name: string, age: number) => {
+                await new Promise(resolve => setTimeout(resolve, 10));
+                return {
+                    user: { name, age },
+                    timestamp: Date.now(),
+                    status: 'completed'
+                };
+            }, ['Alice', 25]);
+            expect(result.user).toEqual({ name: 'Alice', age: 25 });
+            expect(result.status).toBe('completed');
+            expect(typeof result.timestamp).toBe('number');
+        });
+
+        it('should handle async function with array operations', async () => {
+            const result = await pool.execute(async (arr: number[]) => {
+                await new Promise(resolve => setTimeout(resolve, 10));
+                return arr
+                    .filter(x => x % 2 === 0)
+                    .map(x => x * 2)
+                    .reduce((sum, x) => sum + x, 0);
+            }, [[1, 2, 3, 4, 5, 6]]);
+            expect(result).toBe(24);
+        });
+
+        it('should handle async function with JSON operations', async () => {
+            const result = await pool.execute(async (data: object) => {
+                await new Promise(resolve => setTimeout(resolve, 10));
+                const json = JSON.stringify(data);
+                return JSON.parse(json);
+            }, [{ x: 42, y: 'test' }]);
+            expect(result).toEqual({ x: 42, y: 'test' });
+        });
+
+        it('should handle async function with conditional logic', async () => {
+            const result = await pool.execute(async (n: number) => {
+                await new Promise(resolve => setTimeout(resolve, 10));
+                if (n < 0) return 'negative';
+                if (n === 0) return 'zero';
+                return 'positive';
+            }, [42]);
+            expect(result).toBe('positive');
+        });
+
+        it('should handle async function with try-catch', async () => {
+            const result = await pool.execute(async (shouldFail: boolean) => {
+                try {
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    if (shouldFail) throw new Error('Intentional error');
+                    return 'success';
+                } catch (e) {
+                    return 'caught';
+                }
+            }, [false]);
+            expect(result).toBe('success');
+        });
+
+        it('should handle async function with Promise.race', async () => {
+            const result = await pool.execute(async (timeout: number) => {
+                const value = await Promise.race([
+                    Promise.resolve(42),
+                    new Promise(resolve => setTimeout(() => resolve('timeout'), timeout))
+                ]);
+                return value;
+            }, [100]);
+            expect(result).toBe(42);
+        });
+
+        it('should handle async function with nested promises', async () => {
+            const result = await pool.execute(async (n: number) => {
+                const outer = await Promise.resolve(
+                    Promise.resolve(
+                        Promise.resolve(n * 2)
+                    )
+                );
+                return outer;
+            }, [21]);
+            expect(result).toBe(42);
+        });
+
+        it('should handle async function returning undefined', async () => {
+            const result = await pool.execute(async () => {
+                await new Promise(resolve => setTimeout(resolve, 10));
+                return undefined;
+            });
+            expect(result).toBeUndefined();
+        });
+
+        it('should handle async function returning null', async () => {
+            const result = await pool.execute(async () => {
+                await new Promise(resolve => setTimeout(resolve, 10));
+                return null;
+            });
+            expect(result).toBeNull();
+        });
+
+        it('should handle async function with destructuring parameters', async () => {
+            const result = await pool.execute(
+                async ({ x, y }: { x: number; y: number }) => {
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    return x * y;
+                },
+                [{ x: 6, y: 7 }]
+            );
+            expect(result).toBe(42);
+        });
+
+        it('should handle async function with rest parameters', async () => {
+            const result = await pool.execute(
+                async (...nums: number[]) => {
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    return nums.reduce((sum, n) => sum + n, 0);
+                },
+                [10, 11, 12, 9]
+            );
+            expect(result).toBe(42);
+        });
+
+        it('should handle async function with default parameters', async () => {
+            const result = await pool.execute(
+                async (a: number, b = 20, c = 15) => {
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    return a + b + c;
+                },
+                [7]
+            );
+            expect(result).toBe(42);
+        });
+
+        it('should handle async arrow function with object return', async () => {
+            const result = await pool.execute(async () => ({ value: 42, status: 'ok' }));
+            expect(result).toEqual({ value: 42, status: 'ok' });
+        });
+
+        it('should handle async function with template literals', async () => {
+            const result = await pool.execute(
+                async (name: string, count: number) => {
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    return `${name}: ${count}`;
+                },
+                ['Result', 42]
+            );
+            expect(result).toBe('Result: 42');
+        });
+
+        it('should handle async function with chained operations', async () => {
+            const result = await pool.execute(async (str: string) => {
+                await new Promise(resolve => setTimeout(resolve, 10));
+                return str.trim().toLowerCase().split('').reverse().join('');
+            }, ['  ASYNC  ']);
+            expect(result).toBe('cnysa');
+        });
+
+        it('should handle mixed async and sync operations', async () => {
+            const result = await pool.execute(async (n: number) => {
+                const sync1 = n * 2;
+                const async1 = await Promise.resolve(sync1 + 10);
+                const sync2 = async1 / 2;
+                return sync2;
+            }, [16]);
+            expect(result).toBe(21);
+        });
+
+        it('should handle async function with CPU-intensive work', async () => {
+            const result = await pool.execute(async (limit: number) => {
+                await new Promise(resolve => setTimeout(resolve, 10));
+                let sum = 0;
+                for (let i = 0; i < limit; i++) {
+                    sum += i;
+                }
+                return sum;
+            }, [1000000]);
+            expect(typeof result).toBe('number');
+            expect(result).toBeGreaterThan(0);
+        });
+
+        it('should handle more async tasks than workers', async () => {
+            const taskCount = 20;
+            const tasks = Array.from({ length: taskCount }, (_, i) =>
+                pool.execute(async (x: number) => {
+                    await new Promise(resolve => setTimeout(resolve, 20));
+                    return x;
+                }, [i])
+            );
+
+            const results = await Promise.all(tasks);
+            expect(results).toEqual(Array.from({ length: taskCount }, (_, i) => i));
+        });
+
+        it('should handle async function with early return', async () => {
+            const result = await pool.execute(async (n: number) => {
+                await new Promise(resolve => setTimeout(resolve, 10));
+                if (n < 0) return 0;
+                if (n > 100) return 100;
+                return n;
+            }, [42]);
+            expect(result).toBe(42);
+        });
+
+        it('should handle async function with ternary operator', async () => {
+            const result = await pool.execute(
+                async (x: number, y: number) => {
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    return x > y ? x - y : y - x;
+                },
+                [50, 8]
+            );
+            expect(result).toBe(42);
+        });
+
+        it('should handle async function with optional chaining', async () => {
+            const result = await pool.execute(
+                async (obj: any) => {
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    return obj?.nested?.value ?? 'default';
+                },
+                [{ nested: { value: 42 } }]
+            );
+            expect(result).toBe(42);
+        });
+
+        it('should handle async function with nullish coalescing', async () => {
+            const result = await pool.execute(
+                async (val: any) => {
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    return val ?? 'fallback';
+                },
+                [null]
+            );
+            expect(result).toBe('fallback');
+        });
+
+        it('should map large array with async function', async () => {
+            const items = Array.from({ length: 100 }, (_, i) => i);
+            const results = await pool.map(items, async (x: number) => {
+                await new Promise(resolve => setTimeout(resolve, 5));
+                return x * 2;
+            });
+
+            expect(results.length).toBe(100);
+            expect(results[0]).toBe(0);
+            expect(results[99]).toBe(198);
+        });
+
+        it('should handle rapid async task submission', async () => {
+            const tasks = Array.from({ length: 50 }, (_, i) =>
+                pool.execute(async (x: number) => {
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    return x * 2;
+                }, [i])
+            );
+
+            const results = await Promise.all(tasks);
+            expect(results.length).toBe(50);
+            expect(results[0]).toBe(0);
+            expect(results[49]).toBe(98);
+        });
+
+        it('should show correct stats during async task execution', async () => {
+            const tasks = Array.from({ length: 8 }, () =>
+                pool.execute(async () => {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    return 42;
+                })
+            );
+
+            await new Promise(resolve => setTimeout(resolve, 20));
+
+            const stats = pool.getStats();
+            expect(stats.busyWorkers).toBe(4);
+            expect(stats.queuedTasks).toBe(4);
+            expect(stats.availableWorkers).toBe(0);
+
+            await Promise.all(tasks);
+        });
+
+        it('should distribute async work across workers', async () => {
+            const startTime = Date.now();
+
+            const tasks = Array.from({ length: 8 }, () =>
+                pool.execute(async () => {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    return Date.now();
+                })
+            );
+
+            const timestamps = await Promise.all(tasks);
+            const endTime = Date.now();
+
+            const totalTime = endTime - startTime;
+
+            expect(totalTime).toBeLessThan(500);
+            expect(timestamps.every(t => typeof t === 'number')).toBe(true);
+
+            console.log(`Completed 8 async tasks in ${totalTime}ms`);
+        }, 30000);
+
+        it('should handle mixed sync and async tasks', async () => {
+            const tasks = [
+                pool.execute((x: number) => x * 2, [10]),
+                pool.execute(async (x: number) => {
+                    await new Promise(resolve => setTimeout(resolve, 20));
+                    return x * 3;
+                }, [10]),
+                pool.execute((x: number) => x + 5, [10]),
+                pool.execute(async (x: number) => {
+                    await new Promise(resolve => setTimeout(resolve, 20));
+                    return x - 5;
+                }, [10])
+            ];
+
+            const results = await Promise.all(tasks);
+            expect(results).toEqual([20, 30, 15, 5]);
+        });
+
+        it('should handle async arrow function in map', async () => {
+            const items = [1, 2, 3, 4, 5];
+            const results = await pool.map(items, async x => {
+                await new Promise(resolve => setTimeout(resolve, 10));
+                return x ** 2;
+            });
+            expect(results).toEqual([1, 4, 9, 16, 25]);
+        });
+
+        it('should handle async arrow function with destructuring in map', async () => {
+            const items = [
+                { name: 'Alice', age: 25 },
+                { name: 'Bob', age: 30 }
+            ];
+            const results = await pool.map(items, async ({ name, age }) => {
+                await new Promise(resolve => setTimeout(resolve, 10));
+                return `${name} is ${age}`;
+            });
+            expect(results).toEqual(['Alice is 25', 'Bob is 30']);
+        });
+
+        it('should handle async function with sequential promises', async () => {
+            const result = await pool.execute(async (nums: number[]) => {
+                let sum = 0;
+                for (const num of nums) {
+                    const doubled = await Promise.resolve(num * 2);
+                    sum += doubled;
+                }
+                return sum;
+            }, [[1, 2, 3, 4, 5]]);
+            expect(result).toBe(30);
+        });
+
+        it('should handle async function with parallel promises using Promise.all', async () => {
+            const result = await pool.execute(async (nums: number[]) => {
+                const promises = nums.map(async (num) => {
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    return num * 2;
+                });
+                const results = await Promise.all(promises);
+                return results.reduce((sum, n) => sum + n, 0);
+            }, [[1, 2, 3, 4, 5]]);
+            expect(result).toBe(30);
+        });
+
+        it('should handle async function with Promise.allSettled', async () => {
+            const result = await pool.execute(async () => {
+                const results = await Promise.allSettled([
+                    Promise.resolve(1),
+                    Promise.reject('error'),
+                    Promise.resolve(3)
+                ]);
+                return results.filter(r => r.status === 'fulfilled').length;
+            });
+            expect(result).toBe(2);
+        });
+
+        it('should handle async function with async/await chain', async () => {
+            const result = await pool.execute(async (x: number) => {
+                const step1 = async (n: number) => {
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    return n * 2;
+                };
+                const step2 = async (n: number) => {
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    return n + 10;
+                };
+                const step3 = async (n: number) => {
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    return n / 2;
+                };
+
+                const a = await step1(x);
+                const b = await step2(a);
+                const c = await step3(b);
+                return c;
+            }, [16]);
+            expect(result).toBe(21);
+        });
+    });
 });

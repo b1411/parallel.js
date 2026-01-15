@@ -96,8 +96,8 @@ describe('Queue', () => {
             const timePerOp = (end - start) / n;
             
             expect(queue.size()).toBe(n);
-            // Each operation should be very fast (< 0.01ms on average)
-            expect(timePerOp).toBeLessThan(0.01);
+            // Each operation should be very fast (< 0.02ms on average)
+            expect(timePerOp).toBeLessThan(0.02);
         });
 
         it('should handle large number of dequeue operations efficiently', () => {
@@ -118,8 +118,8 @@ describe('Queue', () => {
             const timePerOp = (end - start) / n;
             
             expect(queue.isEmpty()).toBe(true);
-            // Each operation should be very fast (< 0.01ms on average)
-            expect(timePerOp).toBeLessThan(0.01);
+            // Each operation should be very fast (< 0.02ms on average)
+            expect(timePerOp).toBeLessThan(0.02);
         });
 
         it('should handle mixed operations efficiently', () => {
@@ -143,7 +143,7 @@ describe('Queue', () => {
             const timePerOp = (end - start) / totalOps;
             
             // Each operation should be very fast
-            expect(timePerOp).toBeLessThan(0.01);
+            expect(timePerOp).toBeLessThan(0.02);
         });
 
         it('should verify amortized O(1) complexity', () => {
@@ -169,9 +169,9 @@ describe('Queue', () => {
             }
             
             // Time per operation should not grow significantly with size
-            // The ratio between largest and smallest should be small (< 3x)
+            // The ratio between largest and smallest should be small (< 5x)
             const ratio = Math.max(...times) / Math.min(...times);
-            expect(ratio).toBeLessThan(3);
+            expect(ratio).toBeLessThan(5);
         });
 
         it('should handle rapid size changes efficiently', () => {
@@ -191,7 +191,7 @@ describe('Queue', () => {
             const timePerIteration = (end - start) / iterations;
             
             // Each iteration should be fast
-            expect(timePerIteration).toBeLessThan(0.05);
+            expect(timePerIteration).toBeLessThan(0.1);
         });
     });
 

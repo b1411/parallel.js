@@ -395,4 +395,345 @@ describe('Thread', () => {
             expect(result).toBe(42);
         });
     });
+
+    describe('Async functions support', () => {
+        it('should execute async function with simple computation', async () => {
+            const thread = new Thread(async () => {
+                return await Promise.resolve(42);
+            });
+            const result = await thread.join();
+            expect(result).toBe(42);
+        });
+
+        it('should execute async function with parameters', async () => {
+            const thread = new Thread(async (a: number, b: number) => {
+                await new Promise(resolve => setTimeout(resolve, 10));
+                return a * b;
+            }, [6, 7]);
+            const result = await thread.join();
+            expect(result).toBe(42);
+        });
+
+        it('should handle async arrow function with single parameter', async () => {
+            const thread = new Thread(async x => {
+                await new Promise(resolve => setTimeout(resolve, 10));
+                return x * 2;
+            }, [21]);
+            const result = await thread.join();
+            expect(result).toBe(42);
+        });
+
+        it('should handle async arrow function with multiple parameters', async () => {
+            const thread = new Thread(async (a, b, c) => {
+                await new Promise(resolve => setTimeout(resolve, 10));
+                return a + b + c;
+            }, [10, 20, 12]);
+            const result = await thread.join();
+            expect(result).toBe(42);
+        });
+
+        it('should handle async arrow function with implicit return', async () => {
+            const thread = new Thread(async x => Promise.resolve(x * 2), [21]);
+            const result = await thread.join();
+            expect(result).toBe(42);
+        });
+
+        it('should handle async function with multiple awaits', async () => {
+            const thread = new Thread(async (n: number) => {
+                const step1 = await Promise.resolve(n * 2);
+                const step2 = await Promise.resolve(step1 + 10);
+                const step3 = await Promise.resolve(step2 / 2);
+                return step3;
+            }, [16]);
+            const result = await thread.join();
+            expect(result).toBe(21);
+        });
+
+        it('should handle async function with Promise.all', async () => {
+            const thread = new Thread(async (nums: number[]) => {
+                const promises = nums.map(n => Promise.resolve(n * 2));
+                const results = await Promise.all(promises);
+                return results.reduce((sum, n) => sum + n, 0);
+            }, [[1, 2, 3, 4, 5]]);
+            const result = await thread.join();
+            expect(result).toBe(30);
+        });
+
+        it('should handle async function with delayed computation', async () => {
+            const thread = new Thread(async (ms: number, value: number) => {
+                await new Promise(resolve => setTimeout(resolve, ms));
+                return value;
+            }, [50, 42]);
+            const result = await thread.join();
+            expect(result).toBe(42);
+        });
+
+        it('should handle async function returning complex object', async () => {
+            const thread = new Thread(async (name: string, age: number) => {
+                await new Promise(resolve => setTimeout(resolve, 10));
+                return {
+                    user: { name, age },
+                    timestamp: Date.now(),
+                    status: 'completed'
+                };
+            }, ['Alice', 25]);
+            const result = await thread.join();
+            expect(result.user).toEqual({ name: 'Alice', age: 25 });
+            expect(result.status).toBe('completed');
+            expect(typeof result.timestamp).toBe('number');
+        });
+
+        it('should handle async function with array operations', async () => {
+            const thread = new Thread(async (arr: number[]) => {
+                await new Promise(resolve => setTimeout(resolve, 10));
+                return arr
+                    .filter(x => x % 2 === 0)
+                    .map(x => x * 2)
+                    .reduce((sum, x) => sum + x, 0);
+            }, [[1, 2, 3, 4, 5, 6]]);
+            const result = await thread.join();
+            expect(result).toBe(24);
+        });
+
+        it('should handle async function with JSON operations', async () => {
+            const thread = new Thread(async (data: object) => {
+                await new Promise(resolve => setTimeout(resolve, 10));
+                const json = JSON.stringify(data);
+                return JSON.parse(json);
+            }, [{ x: 42, y: 'test' }]);
+            const result = await thread.join();
+            expect(result).toEqual({ x: 42, y: 'test' });
+        });
+
+        it('should handle async function with conditional logic', async () => {
+            const thread = new Thread(async (n: number) => {
+                await new Promise(resolve => setTimeout(resolve, 10));
+                if (n < 0) return 'negative';
+                if (n === 0) return 'zero';
+                return 'positive';
+            }, [42]);
+            const result = await thread.join();
+            expect(result).toBe('positive');
+        });
+
+        it('should handle async function with try-catch', async () => {
+            const thread = new Thread(async (shouldFail: boolean) => {
+                try {
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    if (shouldFail) throw new Error('Intentional error');
+                    return 'success';
+                } catch (e) {
+                    return 'caught';
+                }
+            }, [false]);
+            const result = await thread.join();
+            expect(result).toBe('success');
+        });
+
+        it('should propagate async function errors', async () => {
+            const thread = new Thread(async () => {
+                await new Promise(resolve => setTimeout(resolve, 10));
+                throw new Error('Async error');
+            });
+            await expect(thread.join()).rejects.toThrow('Async error');
+        });
+
+        it('should handle async arrow function errors', async () => {
+            const thread = new Thread(async x => {
+                await new Promise(resolve => setTimeout(resolve, 10));
+                if (x < 0) throw new Error('Negative value');
+                return x;
+            }, [-5]);
+            await expect(thread.join()).rejects.toThrow('Negative value');
+        });
+
+        it('should execute multiple async threads in parallel', async () => {
+            const threads = Array.from({ length: 5 }, (_, i) =>
+                new Thread(async (index: number) => {
+                    await new Promise(resolve => setTimeout(resolve, 20));
+                    return index * 2;
+                }, [i])
+            );
+            const results = await Promise.all(threads.map(t => t.join()));
+            expect(results).toEqual([0, 2, 4, 6, 8]);
+        });
+
+        it('should handle async function with Promise.race', async () => {
+            const thread = new Thread(async (timeout: number) => {
+                const result = await Promise.race([
+                    Promise.resolve(42),
+                    new Promise(resolve => setTimeout(() => resolve('timeout'), timeout))
+                ]);
+                return result;
+            }, [100]);
+            const result = await thread.join();
+            expect(result).toBe(42);
+        });
+
+        it('should handle async function with nested promises', async () => {
+            const thread = new Thread(async (n: number) => {
+                const outer = await Promise.resolve(
+                    Promise.resolve(
+                        Promise.resolve(n * 2)
+                    )
+                );
+                return outer;
+            }, [21]);
+            const result = await thread.join();
+            expect(result).toBe(42);
+        });
+
+        it('should handle async function returning undefined', async () => {
+            const thread = new Thread(async () => {
+                await new Promise(resolve => setTimeout(resolve, 10));
+                return undefined;
+            });
+            const result = await thread.join();
+            expect(result).toBeUndefined();
+        });
+
+        it('should handle async function returning null', async () => {
+            const thread = new Thread(async () => {
+                await new Promise(resolve => setTimeout(resolve, 10));
+                return null;
+            });
+            const result = await thread.join();
+            expect(result).toBeNull();
+        });
+
+        it('should handle async function with destructuring parameters', async () => {
+            const thread = new Thread(
+                async ({ x, y }: { x: number; y: number }) => {
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    return x * y;
+                },
+                [{ x: 6, y: 7 }]
+            );
+            const result = await thread.join();
+            expect(result).toBe(42);
+        });
+
+        it('should handle async function with rest parameters', async () => {
+            const thread = new Thread(
+                async (...nums: number[]) => {
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    return nums.reduce((sum, n) => sum + n, 0);
+                },
+                [10, 11, 12, 9]
+            );
+            const result = await thread.join();
+            expect(result).toBe(42);
+        });
+
+        it('should handle async function with default parameters', async () => {
+            const thread = new Thread(
+                async (a: number, b = 20, c = 15) => {
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    return a + b + c;
+                },
+                [7]
+            );
+            const result = await thread.join();
+            expect(result).toBe(42);
+        });
+
+        it('should handle async arrow function with object return', async () => {
+            const thread = new Thread(async () => ({ value: 42, status: 'ok' }));
+            const result = await thread.join();
+            expect(result).toEqual({ value: 42, status: 'ok' });
+        });
+
+        it('should handle async function with template literals', async () => {
+            const thread = new Thread(
+                async (name: string, count: number) => {
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    return `${name}: ${count}`;
+                },
+                ['Result', 42]
+            );
+            const result = await thread.join();
+            expect(result).toBe('Result: 42');
+        });
+
+        it('should handle async function with chained operations', async () => {
+            const thread = new Thread(async (str: string) => {
+                await new Promise(resolve => setTimeout(resolve, 10));
+                return str.trim().toLowerCase().split('').reverse().join('');
+            }, ['  ASYNC  ']);
+            const result = await thread.join();
+            expect(result).toBe('cnysa');
+        });
+
+        it('should handle mixed async and sync operations', async () => {
+            const thread = new Thread(async (n: number) => {
+                const sync1 = n * 2;
+                const async1 = await Promise.resolve(sync1 + 10);
+                const sync2 = async1 / 2;
+                return sync2;
+            }, [16]);
+            const result = await thread.join();
+            expect(result).toBe(21);
+        });
+
+        it('should handle async function with CPU-intensive work', async () => {
+            const thread = new Thread(async (limit: number) => {
+                await new Promise(resolve => setTimeout(resolve, 10));
+                let sum = 0;
+                for (let i = 0; i < limit; i++) {
+                    sum += i;
+                }
+                return sum;
+            }, [1000000]);
+            const result = await thread.join();
+            expect(typeof result).toBe('number');
+            expect(result).toBeGreaterThan(0);
+        });
+
+        it('should handle async function with early return', async () => {
+            const thread = new Thread(async (n: number) => {
+                await new Promise(resolve => setTimeout(resolve, 10));
+                if (n < 0) return 0;
+                if (n > 100) return 100;
+                return n;
+            }, [42]);
+            const result = await thread.join();
+            expect(result).toBe(42);
+        });
+
+        it('should handle async function with ternary operator', async () => {
+            const thread = new Thread(
+                async (x: number, y: number) => {
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    return x > y ? x - y : y - x;
+                },
+                [50, 8]
+            );
+            const result = await thread.join();
+            expect(result).toBe(42);
+        });
+
+        it('should handle async function with optional chaining', async () => {
+            const thread = new Thread(
+                async (obj: any) => {
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    return obj?.nested?.value ?? 'default';
+                },
+                [{ nested: { value: 42 } }]
+            );
+            const result = await thread.join();
+            expect(result).toBe(42);
+        });
+
+        it('should handle async function with nullish coalescing', async () => {
+            const thread = new Thread(
+                async (val: any) => {
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    return val ?? 'fallback';
+                },
+                [null]
+            );
+            const result = await thread.join();
+            expect(result).toBe('fallback');
+        });
+    });
 });

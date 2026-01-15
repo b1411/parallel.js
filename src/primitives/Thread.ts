@@ -9,11 +9,15 @@ class Thread<T, TArgs extends unknown[] = unknown[]> {
         this.worker = createWorker();
 
         this.promise = new Promise<T>((resolve, reject) => {
-            this.worker.worker.on('message', (res: { success: boolean; result?: T; error?: string }) => {
+            this.worker.worker.on('message', (res: { success: boolean; result?: T; error?: { message: string; stack?: string } }) => {
                 if (res.success) {
                     resolve(res.result as T);
                 } else {
-                    reject(new Error(res.error));
+                    const error = new Error(res.error?.message || 'Unknown error');
+                    if (res.error?.stack) {
+                        error.stack = res.error.stack;
+                    }
+                    reject(error);
                 }
             });
             this.worker.worker.on('error', (err) => {

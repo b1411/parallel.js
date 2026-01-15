@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/b1411/parallel.js/compare/v1.3.0...v1.4.0) (2026-01-15)
+
+
+### Features
+
+* implement Queue class with O(1) operations and comprehensive tests ([41c20c1](https://github.com/b1411/parallel.js/commit/41c20c107735fe5ce424d5dc15cc5cd8beebe80f))
+
 # [1.3.0](https://github.com/b1411/parallel.js/compare/v1.2.0...v1.3.0) (2026-01-15)
 
 

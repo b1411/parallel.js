@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/b1411/parallel.js/compare/v1.2.0...v1.3.0) (2026-01-15)
+
+
+### Features
+
+* support async functions in Thread and ThreadPool classes with comprehensive tests ([cb01d51](https://github.com/b1411/parallel.js/commit/cb01d51a4af71eec0314e08097747da387db8d17))
+
 # [1.2.0](https://github.com/b1411/parallel.js/compare/v1.1.0...v1.2.0) (2026-01-14)
 
 

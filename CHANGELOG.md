@@ -1,3 +1,11 @@
+# [1.5.0](https://github.com/b1411/parallel.js/compare/v1.4.0...v1.5.0) (2026-01-16)
+
+
+### Features
+
+* add badge update step to CI after successful tests ([3b4450b](https://github.com/b1411/parallel.js/commit/3b4450b0068222a0f5aeb884c5a28db0bcf930ba))
+* enhance performance testing utilities and improve test stability ([2712f2d](https://github.com/b1411/parallel.js/commit/2712f2dfeba04f699e9178c919fe4aaf00d8d9e7))
+
 # [1.4.0](https://github.com/b1411/parallel.js/compare/v1.3.0...v1.4.0) (2026-01-15)
 
 

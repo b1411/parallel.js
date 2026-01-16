@@ -30,7 +30,7 @@ async function main() {
 
     // Тест 4: Обычная функция (для сравнения)
     console.log("4️⃣ Обычная function:");
-    const thread4 = new Thread(function(x) { return x ** 3; }, [5]);
+    const thread4 = new Thread(function (x) { return x ** 3; }, [5]);
     const result4 = await thread4.join();
     console.log(`   5^3 = ${result4}\n`);
 

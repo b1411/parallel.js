@@ -1,3 +1,34 @@
+# [3.0.0](https://github.com/b1411/parallel.js/compare/v2.0.0...v3.0.0) (2026-01-16)
+
+
+* feat!: replace Thread class with Thread.execute() static API ([#4](https://github.com/b1411/parallel.js/issues/4)) ([9f5300e](https://github.com/b1411/parallel.js/commit/9f5300e310c4821e2b2e52148bfdaaa26dec657c))
+
+
+### Bug Fixes
+
+* increase Queue performance test timeout to handle CI variability [skip ci] ([afe4e7b](https://github.com/b1411/parallel.js/commit/afe4e7bd2d9f488dbd99c4202e9ae1c08386752f))
+
+
+### BREAKING CHANGES
+
+* Removed old Thread class constructor API. Users must
+migrate from 'new Thread(fn, args)' to 'Thread.execute(fn, args)'.
+
+- Removed Thread class constructor (src/primitives/Thread.ts)
+- Removed ThreadV2 alias, now Thread is the main API
+- Removed ThreadFactory, functions inlined into Thread object
+- Thread is now a namespace object with static methods: execute(),
+persistent(), prewarm(), clearPool()
+- Updated all tests, examples, and benchmarks to use new API
+- Fixed ThreadPool terminate() to reject queued tasks
+- Added typecheck script to package.json
+
+Migration guide:
+Before: const thread = new Thread(() => 42); await thread.join(); After:
+await Thread.execute(() => 42).join();
+
+Co-authored-by: Rakhmat <232435084+Kemel-Army@users.noreply.github.com>
+
 # [2.0.0](https://github.com/b1411/parallel.js/compare/v1.4.0...v2.0.0) (2026-01-16)
 
 

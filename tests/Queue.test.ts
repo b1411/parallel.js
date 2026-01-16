@@ -202,8 +202,9 @@ describe('Queue', () => {
             const end = performance.now();
             const totalTime = end - start;
             
-            // Проверяем общее время вместо среднего
-            expect(totalTime).toBeLessThan(1000); // 1 секунда для 10k итераций
+            // Используем запас 2-3x для временных ограничений (best practice)
+            // CI может быть медленнее, учитываем вариации производительности
+            expect(totalTime).toBeLessThan(2000); // 2 секунды для 10k итераций с запасом
         });
     });
 

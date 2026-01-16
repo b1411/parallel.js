@@ -39,6 +39,7 @@ jobs:
     - stage: release
       name: "Create Release and Publish"
       node_js: '20'
+      if: commit_message !~ /\[skip ci\]/
       script:
         - npm test
         - npm run build

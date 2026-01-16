@@ -1,4 +1,5 @@
 import { Thread } from '../src/primitives/Thread/index';
+import { waitFor } from './helpers/performance.js';
 
 describe('ThreadV2', () => {
     afterEach(() => {
@@ -232,7 +233,7 @@ describe('ThreadV2', () => {
             expect(worker.listenerCount('error')).toBe(0);
         });
 
-        it('should log unhandled errors to console', (done) => {
+        it('should log unhandled errors to console', async () => {
             const originalError = console.error;
             let errorCalled = false;
             console.error = (...args: any[]) => {
@@ -245,12 +246,16 @@ describe('ThreadV2', () => {
                 throw new Error('Unhandled error');
             });
 
-            setTimeout(() => {
-                expect(errorCalled).toBe(true);
-                console.error = originalError;
-                thread.terminate();
-                done();
-            }, 100);
+            // Ждем пока ошибка будет залогирована
+            await waitFor(() => errorCalled, {
+                timeout: 5000,
+                interval: 50,
+                message: 'Error was not logged'
+            });
+            
+            expect(errorCalled).toBe(true);
+            console.error = originalError;
+            thread.terminate();
         });
     });
 

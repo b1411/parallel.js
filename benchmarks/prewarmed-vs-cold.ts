@@ -1,4 +1,4 @@
-import { ThreadV2 } from "../src/index.js";
+import { Thread } from "../src/index.js";
 
 // CPU-интенсивная задача для тестирования
 function calculatePrimes(max: number): number[] {
@@ -21,10 +21,10 @@ async function benchmarkColdStart(iterations: number): Promise<number> {
 
   for (let i = 0; i < iterations; i++) {
     // Очищаем пул перед каждым запуском, чтобы гарантировать холодный старт
-    ThreadV2.clearPool();
-    
+    Thread.clearPool();
+
     const start = performance.now();
-    const result = await ThreadV2.execute((max: number) => {
+    const result = await Thread.execute((max: number) => {
       const primes: number[] = [];
       for (let i = 2; i <= max; i++) {
         let isPrime = true;
@@ -39,7 +39,7 @@ async function benchmarkColdStart(iterations: number): Promise<number> {
       return primes;
     }, [10000]).join();
     const end = performance.now();
-    
+
     times.push(end - start);
   }
 
@@ -49,8 +49,8 @@ async function benchmarkColdStart(iterations: number): Promise<number> {
 
 async function benchmarkPrewarmed(iterations: number, poolSize: number): Promise<number> {
   // Предварительно прогреваем пул воркеров
-  ThreadV2.prewarm(poolSize);
-  
+  Thread.prewarm(poolSize);
+
   // Небольшая задержка, чтобы воркеры успели инициализироваться
   await new Promise(resolve => setTimeout(resolve, 100));
 
@@ -58,7 +58,7 @@ async function benchmarkPrewarmed(iterations: number, poolSize: number): Promise
 
   for (let i = 0; i < iterations; i++) {
     const start = performance.now();
-    const result = await ThreadV2.execute((max: number) => {
+    const result = await Thread.execute((max: number) => {
       const primes: number[] = [];
       for (let i = 2; i <= max; i++) {
         let isPrime = true;
@@ -73,24 +73,24 @@ async function benchmarkPrewarmed(iterations: number, poolSize: number): Promise
       return primes;
     }, [10000]).join();
     const end = performance.now();
-    
+
     times.push(end - start);
   }
 
   const avgTime = times.reduce((a, b) => a + b, 0) / times.length;
-  
+
   // Очищаем пул после теста
-  ThreadV2.clearPool();
-  
+  Thread.clearPool();
+
   return avgTime;
 }
 
 async function benchmarkMultipleTasks(taskCount: number, poolSize: number): Promise<{ cold: number, prewarmed: number }> {
   // Cold start - множественные задачи
-  ThreadV2.clearPool();
+  Thread.clearPool();
   const coldStart = performance.now();
-  const coldPromises = Array.from({ length: taskCount }, (_, i) => 
-    ThreadV2.execute((max: number) => {
+  const coldPromises = Array.from({ length: taskCount }, (_, i) =>
+    Thread.execute((max: number) => {
       const primes: number[] = [];
       for (let i = 2; i <= max; i++) {
         let isPrime = true;
@@ -108,16 +108,16 @@ async function benchmarkMultipleTasks(taskCount: number, poolSize: number): Prom
   await Promise.all(coldPromises);
   const coldTime = performance.now() - coldStart;
 
-  ThreadV2.clearPool();
+  Thread.clearPool();
   await new Promise(resolve => setTimeout(resolve, 100));
 
   // Prewarmed - множественные задачи
-  ThreadV2.prewarm(poolSize);
+  Thread.prewarm(poolSize);
   await new Promise(resolve => setTimeout(resolve, 100));
-  
+
   const prewarmStart = performance.now();
-  const prewarmPromises = Array.from({ length: taskCount }, (_, i) => 
-    ThreadV2.execute((max: number) => {
+  const prewarmPromises = Array.from({ length: taskCount }, (_, i) =>
+    Thread.execute((max: number) => {
       const primes: number[] = [];
       for (let i = 2; i <= max; i++) {
         let isPrime = true;
@@ -135,13 +135,13 @@ async function benchmarkMultipleTasks(taskCount: number, poolSize: number): Prom
   await Promise.all(prewarmPromises);
   const prewarmTime = performance.now() - prewarmStart;
 
-  ThreadV2.clearPool();
+  Thread.clearPool();
 
   return { cold: coldTime, prewarmed: prewarmTime };
 }
 
 async function runBenchmark() {
-  console.log('🚀 Бенчмарк: Prewarmed vs Cold Start (ThreadV2.execute)\n');
+  console.log('🚀 Бенчмарк: Prewarmed vs Cold Start (Thread.execute)\n');
   console.log('═'.repeat(60));
 
   const iterations = 10;
@@ -161,7 +161,7 @@ async function runBenchmark() {
 
   const improvement = ((coldTime - prewarmTime) / coldTime * 100).toFixed(1);
   const speedup = (coldTime / prewarmTime).toFixed(2);
-  
+
   console.log('📈 Результаты:');
   console.log(`   Улучшение: ${improvement}%`);
   console.log(`   Ускорение: ${speedup}x`);
@@ -175,7 +175,7 @@ async function runBenchmark() {
   console.log(`   Размер пула: ${poolSize}\n`);
 
   const multiResults = await benchmarkMultipleTasks(taskCount, poolSize);
-  
+
   console.log('❄️  Cold Start:');
   console.log(`   Общее время: ${multiResults.cold.toFixed(2)} мс`);
   console.log(`   Время на задачу: ${(multiResults.cold / taskCount).toFixed(2)} мс\n`);
@@ -186,7 +186,7 @@ async function runBenchmark() {
 
   const multiImprovement = ((multiResults.cold - multiResults.prewarmed) / multiResults.cold * 100).toFixed(1);
   const multiSpeedup = (multiResults.cold / multiResults.prewarmed).toFixed(2);
-  
+
   console.log('📈 Результаты:');
   console.log(`   Улучшение: ${multiImprovement}%`);
   console.log(`   Ускорение: ${multiSpeedup}x`);

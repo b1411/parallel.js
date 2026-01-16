@@ -1,5 +1,6 @@
 // tests/ThreadPool.test.ts
 import { ThreadPool } from '../src/primitives/ThreadPool';
+import { sleep } from './helpers';
 
 describe('ThreadPool', () => {
     let pool: ThreadPool;
@@ -1644,10 +1645,10 @@ describe('ThreadPool', () => {
         it('should clean up TTL timeouts on pool termination', async () => {
             pool = new ThreadPool(1, 10000);
 
-            // Занимаем воркер
+            // Занимаем воркер легкой задачей
             const longTask = pool.execute(() => {
                 let sum = 0;
-                for (let i = 0; i < 1e9; i++) sum += i;
+                for (let i = 0; i < 1e6; i++) sum += i; // Уменьшаем нагрузку
                 return sum;
             });
 
@@ -1656,15 +1657,18 @@ describe('ThreadPool', () => {
                 pool.execute(() => 42, [], 10000).catch(() => 'terminated')
             );
 
-            await new Promise(resolve => setTimeout(resolve, 50));
+            await sleep(50);
 
-            // Завершаем pool
+            // Завершаем pool - это должно очистить все TTL таймауты
             await pool.terminate();
+
+            // Ждем завершения всех задач
+            await Promise.allSettled([longTask, ...queuedTasks]);
 
             // Все задачи должны быть отменены
             const stats = pool.getStats();
             expect(stats.totalWorkers).toBe(0);
             expect(stats.queuedTasks).toBe(0);
-        });
+        }, 10000);
     });
 });

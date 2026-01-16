@@ -23,6 +23,7 @@
     "update-badge": "node scripts/update-coverage-badge.mjs",
     "test:badge": "npm run test:coverage && npm run update-badge",
     "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
     "release": "semantic-release",
     "prepare": "npm run build"
   },

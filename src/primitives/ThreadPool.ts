@@ -9,6 +9,8 @@ interface Task<T> {
     transferables?: Transferable[];
     resolve: (value: T) => void;
     reject: (reason?: unknown) => void;
+    ttlTimeout?: NodeJS.Timeout;
+    cancelled?: boolean;
 }
 
 export class ThreadPool {
@@ -16,8 +18,10 @@ export class ThreadPool {
     private availableWorkers: Worker[] = [];
     private taskQueue = new Queue<Task<unknown>>();
     private workerTasks = new Map<Worker, Task<unknown>>();
+    private defaultTTL: number | undefined;
 
-    constructor(private size: number) {
+    constructor(private size: number, ttl?: number) {
+        this.defaultTTL = ttl;
         this.initWorkers();
     }
 
@@ -34,6 +38,13 @@ export class ThreadPool {
         worker.on('message', (res: { success: boolean; result?: unknown; error?: { message: string; stack?: string } }) => {
             const task = this.workerTasks.get(worker);
             if (!task) return;
+            
+            // Очищаем TTL таймаут если он был установлен
+            if (task.ttlTimeout) {
+                clearTimeout(task.ttlTimeout);
+                delete task.ttlTimeout;
+            }
+            
             if (res.success) {
                 task.resolve(res.result);
             } else {
@@ -52,6 +63,11 @@ export class ThreadPool {
         worker.on('error', (err) => {
             const task = this.workerTasks.get(worker);
             if (task) {
+                // Очищаем TTL таймаут если он был установлен
+                if (task.ttlTimeout) {
+                    clearTimeout(task.ttlTimeout);
+                    delete task.ttlTimeout;
+                }
                 task.reject(err);
                 this.workerTasks.delete(worker);
             }
@@ -77,6 +93,18 @@ export class ThreadPool {
             const worker = this.availableWorkers.pop() as Worker;
             const task = this.taskQueue.dequeue() as Task<unknown>;
 
+            // Пропускаем отмененные задачи
+            if (task.cancelled) {
+                this.availableWorkers.push(worker);
+                continue;
+            }
+
+            // Очищаем TTL таймаут так как задача начинает выполняться
+            if (task.ttlTimeout) {
+                clearTimeout(task.ttlTimeout);
+                delete task.ttlTimeout;
+            }
+
             this.workerTasks.set(worker, task);
             worker.postMessage({ fn: task.fn.toString(), args: task.args }, task.transferables || []);
         }
@@ -84,7 +112,8 @@ export class ThreadPool {
 
     async execute<TArgs extends unknown[], TResult>(
         fn: (...args: TArgs) => TResult,
-        args: TArgs = [] as unknown as TArgs
+        args: TArgs = [] as unknown as TArgs,
+        ttl?: number
     ): Promise<TResult> {
         return new Promise<TResult>((resolve, reject) => {
             const task: Task<unknown> = {
@@ -92,16 +121,27 @@ export class ThreadPool {
                 args,
                 transferables: extractTransferables(args),
                 resolve: resolve as (value: unknown) => void,
-                reject
+                reject,
+                cancelled: false
             };
+
+            const ttlValue = ttl !== undefined ? ttl : this.defaultTTL;
+
+            if (ttlValue && this.availableWorkers.length === 0) {
+                task.ttlTimeout = setTimeout(() => {
+                    task.cancelled = true;
+                    task.reject(new Error('Task TTL expired'));
+                }, ttlValue);
+            }
+
             this.taskQueue.enqueue(task);
             this.processQueue();
         });
     }
 
-    async map<T, R>(items: T[], fn: (item: T) => R): Promise<R[]> {
+    async map<T, R>(items: T[], fn: (item: T) => R, ttl?: number): Promise<R[]> {
         return Promise.all(
-            items.map(item => this.execute<[T], R>(fn, [item]))
+            items.map(item => this.execute<[T], R>(fn, [item], ttl))
         ) as Promise<R[]>;
     }
 
@@ -115,6 +155,11 @@ export class ThreadPool {
     }
 
     async terminate() {
+        for (const task of this.workerTasks.values()) {
+            if (task.ttlTimeout) {
+                clearTimeout(task.ttlTimeout);
+            }
+        }
         await Promise.all(
             this.workers.map(w => w.terminate())
         );

@@ -1,6 +1,9 @@
 import { extractTransferables } from "@/utils/extractTransferables.js";
 import { createWorker } from "@/utils/workerFactory.js";
 
+/**
+ * @deprecated Use ThreadV2.execute() instead
+ */
 class Thread<T, TArgs extends unknown[] = unknown[]> {
     private worker: ReturnType<typeof createWorker>;
     private promise: Promise<T>;

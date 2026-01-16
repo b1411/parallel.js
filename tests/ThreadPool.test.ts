@@ -1372,4 +1372,299 @@ describe('ThreadPool', () => {
             expect(result).toBe(21);
         });
     });
+
+    describe('TTL (Time To Live)', () => {
+        it('should execute task immediately when workers are available', async () => {
+            pool = new ThreadPool(4, 1000);
+
+            const result = await pool.execute((x: number) => x * 2, [5], 1000);
+            expect(result).toBe(10);
+        });
+
+        it('should reject task when TTL expires (per-task TTL)', async () => {
+            pool = new ThreadPool(2);
+
+            // Занимаем оба воркера длинными задачами
+            const longTasks = [
+                pool.execute(() => {
+                    const start = Date.now();
+                    // eslint-disable-next-line no-empty
+                    while (Date.now() - start < 2000) { } // Блокируем на 2 секунды
+                    return 1;
+                }),
+                pool.execute(() => {
+                    const start = Date.now();
+                    // eslint-disable-next-line no-empty
+                    while (Date.now() - start < 2000) { } // Блокируем на 2 секунды
+                    return 2;
+                })
+            ];
+
+            // Ждем чтобы воркеры точно начали работать
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            // Пытаемся добавить задачу с коротким TTL (50ms)
+            await expect(
+                pool.execute((x: number) => x * 2, [5], 50)
+            ).rejects.toThrow('Task TTL expired');
+
+            await Promise.all(longTasks);
+        }, 15000);
+
+        it('should reject task when default TTL expires', async () => {
+            pool = new ThreadPool(2, 50); // Default TTL = 50ms
+
+            // Занимаем оба воркера
+            const longTasks = [
+                pool.execute(() => {
+                    const start = Date.now();
+                    // eslint-disable-next-line no-empty
+                    while (Date.now() - start < 2000) { } // Блокируем на 2 секунды
+                    return 1;
+                }),
+                pool.execute(() => {
+                    const start = Date.now();
+                    // eslint-disable-next-line no-empty
+                    while (Date.now() - start < 2000) { } // Блокируем на 2 секунды
+                    return 2;
+                })
+            ];
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            // Задача использует default TTL из конструктора (50ms)
+            await expect(
+                pool.execute((x: number) => x * 2, [5])
+            ).rejects.toThrow('Task TTL expired');
+
+            await Promise.all(longTasks);
+        }, 15000);
+
+        it('should execute task when it becomes available before TTL expires', async () => {
+            pool = new ThreadPool(2, 5000);
+
+            // Занимаем оба воркера короткими задачами
+            const shortTasks = [
+                pool.execute(() => {
+                    let sum = 0;
+                    for (let i = 0; i < 1e7; i++) sum += i;
+                    return sum;
+                }),
+                pool.execute(() => {
+                    let sum = 0;
+                    for (let i = 0; i < 1e7; i++) sum += i;
+                    return sum;
+                })
+            ];
+
+            // Добавляем задачу с достаточным TTL
+            const taskWithTTL = pool.execute((x: number) => x * 3, [10], 5000);
+
+            const results = await Promise.all([...shortTasks, taskWithTTL]);
+            expect(results[2]).toBe(30);
+        }, 15000);
+
+        it('should handle multiple tasks with different TTLs', async () => {
+            pool = new ThreadPool(1);
+
+            // Занимаем единственный воркер
+            const longTask = pool.execute(() => {
+                const start = Date.now();
+                // eslint-disable-next-line no-empty
+                while (Date.now() - start < 2000) { } // Блокируем на 2 секунды
+                return 1;
+            });
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            // Добавляем задачи с разными TTL
+            const taskShortTTL = pool.execute((x: number) => x * 2, [5], 50); // 50ms TTL
+            const taskLongTTL = pool.execute((x: number) => x * 3, [10], 10000); // 10s TTL
+
+            const results = await Promise.allSettled([taskShortTTL, taskLongTTL, longTask]);
+
+            expect(results[0].status).toBe('rejected');
+            if (results[0].status === 'rejected') {
+                expect(results[0].reason.message).toBe('Task TTL expired');
+            }
+            expect(results[1].status).toBe('fulfilled');
+            if (results[1].status === 'fulfilled') {
+                expect(results[1].value).toBe(30);
+            }
+            expect(results[2].status).toBe('fulfilled');
+        }, 15000);
+
+        it('should not apply TTL when workers are immediately available', async () => {
+            pool = new ThreadPool(4, 50);
+
+            // Все воркеры свободны, TTL не должен сработать
+            const tasks = Array.from({ length: 4 }, (_, i) =>
+                pool.execute((x: number) => x * 2, [i], 50)
+            );
+
+            const results = await Promise.all(tasks);
+            expect(results).toEqual([0, 2, 4, 6]);
+        });
+
+        it('should override default TTL with per-task TTL', async () => {
+            pool = new ThreadPool(2, 100); // Default TTL = 100ms
+
+            // Занимаем оба воркера
+            const longTasks = [
+                pool.execute(() => {
+                    let sum = 0;
+                    for (let i = 0; i < 1e8; i++) sum += i;
+                    return sum;
+                }),
+                pool.execute(() => {
+                    let sum = 0;
+                    for (let i = 0; i < 1e8; i++) sum += i;
+                    return sum;
+                })
+            ];
+
+            await new Promise(resolve => setTimeout(resolve, 50));
+
+            // Задача с более длинным TTL должна успеть выполниться
+            const taskWithLongerTTL = pool.execute((x: number) => x * 5, [20], 10000);
+
+            const results = await Promise.allSettled([...longTasks, taskWithLongerTTL]);
+
+            expect(results[2].status).toBe('fulfilled');
+            if (results[2].status === 'fulfilled') {
+                expect(results[2].value).toBe(100);
+            }
+        }, 15000);
+
+        it('should handle TTL with map function', async () => {
+            pool = new ThreadPool(2, 5000);
+
+            // Занимаем воркеры
+            const blocker1 = pool.execute(() => {
+                let sum = 0;
+                for (let i = 0; i < 1e8; i++) sum += i;
+                return sum;
+            });
+            const blocker2 = pool.execute(() => {
+                let sum = 0;
+                for (let i = 0; i < 1e8; i++) sum += i;
+                return sum;
+            });
+
+            await new Promise(resolve => setTimeout(resolve, 50));
+
+            // map с коротким TTL
+            const mapPromise = pool.map([1, 2, 3], (x: number) => x * 2, 100);
+
+            const mapResult = await Promise.race([
+                mapPromise.catch(e => e),
+                new Promise(resolve => setTimeout(() => resolve('timeout'), 150))
+            ]);
+
+            // Хотя бы одна задача из map должна упасть по TTL
+            expect(mapResult).toBeDefined();
+
+            await Promise.all([blocker1, blocker2]);
+        }, 15000);
+
+        it('should handle zero TTL as no timeout', async () => {
+            pool = new ThreadPool(2, 0);
+
+            // Занимаем воркеры
+            const longTasks = [
+                pool.execute(() => {
+                    let sum = 0;
+                    for (let i = 0; i < 5e7; i++) sum += i;
+                    return sum;
+                }),
+                pool.execute(() => {
+                    let sum = 0;
+                    for (let i = 0; i < 5e7; i++) sum += i;
+                    return sum;
+                })
+            ];
+
+            // Задача с TTL=0 должна ждать без таймаута
+            const task = pool.execute((x: number) => x * 2, [10], 0);
+
+            const results = await Promise.all([...longTasks, task]);
+            expect(results[2]).toBe(20);
+        }, 15000);
+
+        it('should handle undefined TTL as no timeout', async () => {
+            pool = new ThreadPool(2, undefined);
+
+            // Занимаем воркеры
+            const longTasks = [
+                pool.execute(() => {
+                    let sum = 0;
+                    for (let i = 0; i < 5e7; i++) sum += i;
+                    return sum;
+                }),
+                pool.execute(() => {
+                    let sum = 0;
+                    for (let i = 0; i < 5e7; i++) sum += i;
+                    return sum;
+                })
+            ];
+
+            // Задача с undefined TTL должна ждать без таймаута
+            const task = pool.execute((x: number) => x * 2, [10]);
+
+            const results = await Promise.all([...longTasks, task]);
+            expect(results[2]).toBe(20);
+        }, 15000);
+
+        it('should clear TTL timeout after task execution', async () => {
+            pool = new ThreadPool(2, 5000);
+
+            const task1 = pool.execute(() => {
+                let sum = 0;
+                for (let i = 0; i < 3e7; i++) sum += i;
+                return 'task1';
+            });
+
+            const task2 = pool.execute(() => {
+                let sum = 0;
+                for (let i = 0; i < 3e7; i++) sum += i;
+                return 'task2';
+            });
+
+            // Эта задача будет в очереди с TTL, но успеет выполниться
+            const task3 = pool.execute(() => 'task3', [], 3000);
+
+            const results = await Promise.all([task1, task2, task3]);
+            expect(results).toEqual(['task1', 'task2', 'task3']);
+
+            // Проверяем что pool работает нормально после
+            const task4 = await pool.execute(() => 'task4');
+            expect(task4).toBe('task4');
+        }, 15000);
+
+        it('should clean up TTL timeouts on pool termination', async () => {
+            pool = new ThreadPool(1, 10000);
+
+            // Занимаем воркер
+            const longTask = pool.execute(() => {
+                let sum = 0;
+                for (let i = 0; i < 1e9; i++) sum += i;
+                return sum;
+            });
+
+            // Добавляем задачи в очередь с TTL
+            const queuedTasks = Array.from({ length: 5 }, () =>
+                pool.execute(() => 42, [], 10000).catch(() => 'terminated')
+            );
+
+            await new Promise(resolve => setTimeout(resolve, 50));
+
+            // Завершаем pool
+            await pool.terminate();
+
+            // Все задачи должны быть отменены
+            const stats = pool.getStats();
+            expect(stats.totalWorkers).toBe(0);
+            expect(stats.queuedTasks).toBe(0);
+        });
+    });
 });

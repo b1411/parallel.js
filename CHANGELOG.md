@@ -1,3 +1,19 @@
+# [2.0.0](https://github.com/b1411/parallel.js/compare/v1.4.0...v2.0.0) (2026-01-16)
+
+
+* feat!: implement ThreadV2 with prewarming and TTL support ([e9b5eb8](https://github.com/b1411/parallel.js/commit/e9b5eb8a6618ba743d0e9b123b20088962eb9f9d))
+
+
+### Features
+
+* add badge update step to CI after successful tests ([3b4450b](https://github.com/b1411/parallel.js/commit/3b4450b0068222a0f5aeb884c5a28db0bcf930ba))
+* enhance performance testing utilities and improve test stability ([2712f2d](https://github.com/b1411/parallel.js/commit/2712f2dfeba04f699e9178c919fe4aaf00d8d9e7))
+
+
+### BREAKING CHANGES
+
+* ThreadV2 introduces a new API that replaces the legacy Thread interface. The new API provides prewarming capabilities and TTL support, which changes how threads are initialized and managed.
+
 # [1.5.0](https://github.com/b1411/parallel.js/compare/v1.4.0...v1.5.0) (2026-01-16)
 
 

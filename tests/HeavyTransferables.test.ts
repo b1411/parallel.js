@@ -1,4 +1,4 @@
-import { Thread } from '../src/primitives/Thread';
+import { Thread } from '../src/index';
 import { ThreadPool } from '../src/primitives/ThreadPool';
 
 describe('Heavy Transferables Tests (~100MB)', () => {
@@ -13,7 +13,7 @@ describe('Heavy Transferables Tests (~100MB)', () => {
                 view[i] = i % 256;
             }
 
-            const thread = new Thread(
+            const result = await Thread.execute(
                 (buf: ArrayBuffer) => {
                     const arr = new Uint8Array(buf);
                     let sum = 0;
@@ -24,9 +24,7 @@ describe('Heavy Transferables Tests (~100MB)', () => {
                     return { size: buf.byteLength, checksum: sum };
                 },
                 [buffer]
-            );
-
-            const result = await thread.join();
+            ).join();
             expect(result.size).toBe(bufferSize);
             expect(result.checksum).toBeGreaterThan(0);
         }, 30000);
@@ -48,7 +46,7 @@ describe('Heavy Transferables Tests (~100MB)', () => {
                 }
             });
 
-            const thread = new Thread(
+            const result = await Thread.execute(
                 (bufs: ArrayBuffer[]) => {
                     return bufs.map((buf, idx) => {
                         const arr = new Uint8Array(buf);
@@ -60,11 +58,9 @@ describe('Heavy Transferables Tests (~100MB)', () => {
                     });
                 },
                 [buffers]
-            );
-
-            const result = await thread.join();
+            ).join();
             expect(result).toHaveLength(4);
-            result.forEach((item, idx) => {
+            result.forEach((item: { size: any; index: any; }, idx: any) => {
                 expect(item.size).toBe(bufferSize);
                 expect(item.index).toBe(idx);
             });
@@ -79,7 +75,7 @@ describe('Heavy Transferables Tests (~100MB)', () => {
                 float64Array[i] = Math.sin(i / 1000) * 1000;
             }
 
-            const thread = new Thread(
+            const result = await Thread.execute(
                 (arr: Float64Array) => {
                     let sum = 0;
                     let min = Infinity;
@@ -101,9 +97,7 @@ describe('Heavy Transferables Tests (~100MB)', () => {
                     };
                 },
                 [float64Array]
-            );
-
-            const result = await thread.join();
+            ).join();
             expect(result.length).toBe(elementCount);
             expect(result.byteLength).toBeCloseTo(100 * 1024 * 1024, -5);
             expect(result.min).toBeLessThan(0);
@@ -126,7 +120,7 @@ describe('Heavy Transferables Tests (~100MB)', () => {
                 data.float32[i] = i * 0.1;
             }
 
-            const thread = new Thread(
+            const result = await Thread.execute(
                 (d: typeof data) => {
                     return {
                         uint8Sum: Array.from(d.uint8.slice(0, 1000)).reduce((a, b) => a + b, 0),
@@ -138,9 +132,7 @@ describe('Heavy Transferables Tests (~100MB)', () => {
                     };
                 },
                 [data]
-            );
-
-            const result = await thread.join();
+            ).join();
             expect(result.totalBytes).toBeCloseTo(100 * 1024 * 1024, -5);
             expect(result.uint8Sum).toBeGreaterThan(0);
             expect(result.float32Sum).toBeGreaterThan(0);
@@ -367,7 +359,7 @@ describe('Heavy Transferables Tests (~100MB)', () => {
 
             const startTime = Date.now();
 
-            const thread = new Thread(
+            const result = await Thread.execute(
                 (buf: ArrayBuffer) => {
                     const arr = new Uint8Array(buf);
                     return {
@@ -377,9 +369,7 @@ describe('Heavy Transferables Tests (~100MB)', () => {
                     };
                 },
                 [buffer]
-            );
-
-            const result = await thread.join();
+            ).join();
             const transferTime = Date.now() - startTime;
 
             expect(result.first).toBe(42);
@@ -404,7 +394,7 @@ describe('Heavy Transferables Tests (~100MB)', () => {
                 view[i] = i * 2;
             }
 
-            const thread = new Thread(
+            const result = await Thread.execute(
                 (shared: SharedArrayBuffer) => {
                     const arr = new Int32Array(shared);
 
@@ -421,9 +411,7 @@ describe('Heavy Transferables Tests (~100MB)', () => {
                     return { size: shared.byteLength, sum };
                 },
                 [sharedBuffer]
-            );
-
-            const result = await thread.join();
+            ).join();
 
             expect(result.size).toBe(bufferSize);
 

@@ -1,4 +1,4 @@
-import { Thread } from '../src/primitives/Thread.js';
+import { Thread } from '../src/index.js';
 import { ThreadPool } from '../src/primitives/ThreadPool.js';
 import { performance } from 'node:perf_hooks';
 
@@ -48,7 +48,7 @@ async function benchmarkThreadTransferables() {
         view[0] = i;
 
         const start = performance.now();
-        const thread = new Thread(
+        const result = await Thread.execute(
             (buf: ArrayBuffer) => {
                 const arr = new Uint8Array(buf);
                 let sum = 0;
@@ -58,8 +58,7 @@ async function benchmarkThreadTransferables() {
                 return { size: buf.byteLength, sum };
             },
             [buffer]
-        );
-        await thread.join();
+        ).join();
         const time = performance.now() - start;
         timesWithTransfer.push(time);
 
@@ -95,7 +94,7 @@ async function benchmarkThreadTransferables() {
         // Simulate serialization overhead (copy buffer)
         const serialized = Buffer.from(buffer);
 
-        const thread = new Thread(
+        await Thread.execute(
             (serializedData: Buffer) => {
                 // Simulate deserialization
                 const buf = serializedData.buffer.slice(
@@ -110,8 +109,7 @@ async function benchmarkThreadTransferables() {
                 return { size: buf.byteLength, sum };
             },
             [serialized]
-        );
-        await thread.join();
+        ).join();
         const time = performance.now() - start;
         timesWithoutTransfer.push(time);
     }
@@ -201,7 +199,7 @@ async function benchmarkConcurrentTransfers() {
     for (const concurrency of concurrencyLevels) {
         console.log(`\n🔄 Concurrency Level: ${concurrency} threads`);
 
-        const threads: Thread<any>[] = [];
+        const threads: Promise<any>[] = [];
         const start = performance.now();
 
         for (let i = 0; i < concurrency; i++) {
@@ -209,7 +207,7 @@ async function benchmarkConcurrentTransfers() {
             const view = new Uint8Array(buffer);
             view[0] = i;
 
-            const thread = new Thread(
+            const promise = Thread.execute(
                 (buf: ArrayBuffer, id: number) => {
                     const arr = new Uint8Array(buf);
                     let sum = 0;
@@ -220,12 +218,12 @@ async function benchmarkConcurrentTransfers() {
                     return { id, size: buf.byteLength, sum };
                 },
                 [buffer, i]
-            );
+            ).join();
 
-            threads.push(thread);
+            threads.push(promise as any);
         }
 
-        await Promise.all(threads.map(t => t.join()));
+        await Promise.all(threads);
         const totalTime = performance.now() - start;
         const totalBytes = bufferSize * concurrency;
         const throughput = formatBytes(totalBytes / (totalTime / 1000));

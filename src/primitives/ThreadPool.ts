@@ -38,13 +38,13 @@ export class ThreadPool {
         worker.on('message', (res: { success: boolean; result?: unknown; error?: { message: string; stack?: string } }) => {
             const task = this.workerTasks.get(worker);
             if (!task) return;
-            
+
             // Очищаем TTL таймаут если он был установлен
             if (task.ttlTimeout) {
                 clearTimeout(task.ttlTimeout);
                 delete task.ttlTimeout;
             }
-            
+
             if (res.success) {
                 task.resolve(res.result);
             } else {
@@ -156,10 +156,21 @@ export class ThreadPool {
 
     async terminate() {
         for (const task of this.workerTasks.values()) {
-            if (task.ttlTimeout) {
+            if(task.ttlTimeout) {
                 clearTimeout(task.ttlTimeout);
             }
         }
+
+        while (!this.taskQueue.isEmpty()) {
+            const task = this.taskQueue.dequeue();
+            if (task) {
+                if (task.ttlTimeout) {
+                    clearTimeout(task.ttlTimeout);
+                }
+                task.reject(new Error('Pool terminated'));
+            }
+        }
+
         await Promise.all(
             this.workers.map(w => w.terminate())
         );

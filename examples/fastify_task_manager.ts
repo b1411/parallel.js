@@ -3,14 +3,11 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore - fastify is an optional dev dependency for examples only
 import Fastify from "fastify";
-import { Thread } from "stardust-parallel-js";
+import { Thread } from "../src/index";
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
 const fastify = Fastify({ logger: true });
 
 interface TaskResult {
-    thread: Thread<number>;
     promise: Promise<number>;
     result?: number;
     completed: boolean;
@@ -31,19 +28,16 @@ fastify.post<{
     const { value } = request.body;
     const taskId = generateTaskId();
 
-    const thread = new Thread((n: number) => {
+    const promise = Thread.execute((n: number) => {
         // Имитация долгой задачи
         let result = 0;
         for (let i = 0; i < n * 1e7; i++) {
             result += Math.sqrt(i);
         }
         return result;
-    }, [value]);
-
-    const promise = thread.join();
+    }, [value]).join();
 
     threads.set(taskId, {
-        thread,
         promise,
         completed: false
     });

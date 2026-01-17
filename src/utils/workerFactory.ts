@@ -6,38 +6,7 @@ const workerCode = `
     
     parentPort.on('message', async ({ type, fn, args }) => {
         try {
-            let cleanFn = fn.replace(/__name\\([^)]+\\);?/g, '').trim();
-            
-            // Detect async keyword
-            const isAsync = /^async\\s+/.test(cleanFn);
-            cleanFn = cleanFn.replace(/^async\\s+/, '');
-            
-            // Arrow function conversion
-            const arrowMatch = cleanFn.match(/^\\(([^)]*)\\)\\s*=>\\s*(.+)$/s);
-            if (arrowMatch) {
-                const params = arrowMatch[1];
-                const body = arrowMatch[2].trim();
-                
-                if (body.startsWith('{') && body.endsWith('}')) {
-                    cleanFn = \`\${isAsync ? 'async ' : ''}function(\${params}) \${body}\`;
-                } else {
-                    cleanFn = \`\${isAsync ? 'async ' : ''}function(\${params}) { return \${body} }\`;
-                }
-            }
-            
-            const singleArrowMatch = cleanFn.match(/^([a-zA-Z_$][a-zA-Z0-9_$]*)\\s*=>\\s*(.+)$/s);
-            if (singleArrowMatch) {
-                const param = singleArrowMatch[1];
-                const body = singleArrowMatch[2].trim();
-                
-                if (body.startsWith('{') && body.endsWith('}')) {
-                    cleanFn = \`\${isAsync ? 'async ' : ''}function(\${param}) \${body}\`;
-                } else {
-                    cleanFn = \`\${isAsync ? 'async ' : ''}function(\${param}) { return \${body} }\`;
-                }
-            }
-            
-            const func = eval('(' + cleanFn + ')');
+            const func = eval('(' + fn + ')');
             
             // Execute или Persistent режим
             if (type === 'persistent') {

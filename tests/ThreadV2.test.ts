@@ -7,10 +7,12 @@ describe('ThreadV2', () => {
     });
 
     describe('execute', () => {
-        it('should execute simple computation', async () => {
-            const thread = Thread.execute(() => {
-                return 2 + 2;
-            });
+        it('should execute simple computation returns promise', async () => {
+            const thread = Thread.execute(async (a: number) => {
+                return new Promise<number>((resolve) => {
+                    resolve(a * 2);
+                });
+            }, [2]);
 
             const result = await thread.join();
             expect(result).toBe(4);
@@ -56,7 +58,7 @@ describe('ThreadV2', () => {
             await expect(thread.join()).rejects.toThrow('Test error');
         });
 
-        it('should run multiple threads in parallel', async () => {
+        it('should run multiple threads in parallel', async function () {
             const threads = Array.from({ length: 4 }, (_, i) =>
                 Thread.execute((index: number) => {
                     let sum = 0;

@@ -156,7 +156,7 @@ export class ThreadPool {
 
     async terminate() {
         for (const task of this.workerTasks.values()) {
-            if(task.ttlTimeout) {
+            if (task.ttlTimeout) {
                 clearTimeout(task.ttlTimeout);
             }
         }

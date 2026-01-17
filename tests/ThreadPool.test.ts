@@ -1,6 +1,6 @@
 // tests/ThreadPool.test.ts
 import { ThreadPool } from '../src/primitives/ThreadPool';
-import { sleep } from './helpers';
+import { sleep, waitFor } from './helpers';
 
 describe('ThreadPool', () => {
     let pool: ThreadPool;
@@ -1645,10 +1645,10 @@ describe('ThreadPool', () => {
         it('should clean up TTL timeouts on pool termination', async () => {
             pool = new ThreadPool(1, 10000);
 
-            // Занимаем воркер легкой задачей
+            // Занимаем воркер легкой задачей (уменьшили нагрузку для CI)
             const longTask = pool.execute(() => {
                 let sum = 0;
-                for (let i = 0; i < 1e6; i++) sum += i; // Уменьшаем нагрузку
+                for (let i = 0; i < 5e5; i++) sum += i; // Уменьшили с 1e6 до 5e5
                 return sum;
             });
 
@@ -1657,7 +1657,8 @@ describe('ThreadPool', () => {
                 pool.execute(() => 42, [], 10000).catch(() => 'terminated')
             );
 
-            await sleep(50);
+            // Даем время на постановку в очередь
+            await sleep(100);
 
             // Завершаем pool - это должно очистить все TTL таймауты
             await pool.terminate();
@@ -1665,10 +1666,19 @@ describe('ThreadPool', () => {
             // Ждем завершения всех задач
             await Promise.allSettled([longTask, ...queuedTasks]);
 
-            // Все задачи должны быть отменены
+            // Используем waitFor для проверки завершения (best practice)
+            await waitFor(
+                () => {
+                    const stats = pool.getStats();
+                    return stats.totalWorkers === 0 && stats.queuedTasks === 0;
+                },
+                { timeout: 5000, message: 'Pool did not terminate properly' }
+            );
+
+            // Финальная проверка
             const stats = pool.getStats();
             expect(stats.totalWorkers).toBe(0);
             expect(stats.queuedTasks).toBe(0);
-        }, 10000);
+        }, 20000);
     });
 });

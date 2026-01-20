@@ -1,3 +1,10 @@
+## [3.0.1](https://github.com/b1411/parallel.js/compare/v3.0.0...v3.0.1) (2026-01-17)
+
+
+### Bug Fixes
+
+* improve code formatting and cleanup in ThreadPool and workerFactory; adjust test timeouts for CI stability ([ba8aa02](https://github.com/b1411/parallel.js/commit/ba8aa020ea63003dce2de2911dc03136dff690e8))
+
 # [3.0.0](https://github.com/b1411/parallel.js/compare/v2.0.0...v3.0.0) (2026-01-16)
 
 

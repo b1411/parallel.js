@@ -9,8 +9,6 @@
 [![Bundle Size](https://img.shields.io/bundlephobia/minzip/stardust-parallel-js)](https://bundlephobia.com/package/stardust-parallel-js)
 [![GitHub stars](https://img.shields.io/github/stars/b1411/parallel.js.svg?style=social)](https://github.com/b1411/parallel.js)
 
-> **Other languages:** [Русский](./README.ru.md)
-
 A library for parallel execution of JavaScript/TypeScript functions using Worker Threads in Node.js.
 
 ## Performance
@@ -30,9 +28,14 @@ Benchmarks on 4-core CPU:
 - Simple API for parallel task execution
 - Thread pool for efficient resource management
 - Single thread support for one-off tasks
+- Persistent threads for long-running background tasks
+- Worker prewarming to reduce thread creation overhead
+- Task TTL (timeout) support for better control
+- Pool statistics and monitoring with `getStats()`
 - Full TypeScript support
 - Automatic recovery of crashed threads
 - Array processing similar to `map()`, but parallel
+- Automatic extraction and transfer of Transferable objects
 
 ## Installation
 
@@ -102,8 +105,8 @@ Use `Thread` for one-off operations:
 ```typescript
 import { Thread } from 'stardust-parallel-js';
 
-// Start and wait for result
-const thread = new Thread(
+// Execute function and wait for result
+const thread = Thread.execute(
   (text: string) => text.toUpperCase(),
   ['hello world']
 );
@@ -112,8 +115,35 @@ const result = await thread.join();
 console.log(result); // "HELLO WORLD"
 
 // Arrow functions work!
-const thread2 = new Thread(x => x * 2, [21]);
+const thread2 = Thread.execute(x => x * 2, [21]);
 console.log(await thread2.join()); // 42
+
+// With TTL (timeout in milliseconds)
+const thread3 = Thread.execute(
+  (n: number) => {
+    // Some heavy computation
+    return n * 2;
+  },
+  [42],
+  5000 // 5 seconds timeout
+);
+
+// Persistent thread for long-running tasks
+const persistent = Thread.persistent(
+  () => {
+    setInterval(() => {
+      console.log('Running...');
+    }, 1000);
+  },
+  []
+);
+
+persistent.onError((error) => {
+  console.error('Thread error:', error);
+});
+
+// Don't forget to terminate when done
+persistent.terminate();
 ```
 
 ## Examples
@@ -181,29 +211,52 @@ npx tsx benchmarks/data-processing.ts
 
 ### ThreadPool
 
-#### `constructor(size: number)`
+#### `constructor(size: number, ttl?: number)`
 Creates a thread pool of the specified size.
 
+- `size` - Number of worker threads in the pool
+- `ttl` - (optional) Default time to live in milliseconds for tasks
+
 ```typescript
+// Without TTL
 const pool = new ThreadPool(4);
+
+// With default TTL of 10 seconds
+const pool = new ThreadPool(4, 10000);
 ```
 
-#### `execute<TArgs, TResult>(fn: (...args: TArgs) => TResult, args?: TArgs): Promise<TResult>`
+#### `execute<TArgs, TResult>(fn: (...args: TArgs) => TResult, args?: TArgs, ttl?: number): Promise<TResult>`
 Executes a function in an available thread from the pool.
+
+- `ttl` - (optional) Time to live in milliseconds. Task will be rejected if it waits in queue longer than TTL.
 
 ```typescript
 const result = await pool.execute((x: number) => x * x, [5]);
+
+// With TTL - reject if task waits more than 3 seconds
+const result = await pool.execute((x: number) => x * x, [5], 3000);
 ```
 
-#### `map<T, R>(items: T[], fn: (item: T) => R): Promise<R[]>`
+#### `map<T, R>(items: T[], fn: (item: T) => R, ttl?: number): Promise<R[]>`
 Applies a function to each array element in parallel.
 
+- `ttl` - (optional) Time to live in milliseconds for each task.
+
 ```typescript
-// Arrow function
+// Without TTL
 const results = await pool.map([1, 2, 3], n => n * 2);
 
-// Regular function
-const results2 = await pool.map([1, 2, 3], function(n) { return n * 2; });
+// With TTL
+const results = await pool.map([1, 2, 3], n => n * 2, 5000);
+```
+
+#### `getStats(): { totalWorkers: number; availableWorkers: number; busyWorkers: number; queuedTasks: number }`
+Returns current pool statistics.
+
+```typescript
+const stats = pool.getStats();
+console.log(`Busy workers: ${stats.busyWorkers}/${stats.totalWorkers}`);
+console.log(`Queued tasks: ${stats.queuedTasks}`);
 ```
 
 #### `terminate(): Promise<void>`
@@ -215,18 +268,82 @@ await pool.terminate();
 
 ### Thread
 
-#### `constructor<T, TArgs>(fn: (...args: TArgs) => T, args?: TArgs)`
-Creates a new thread to execute a function.
+#### `Thread.execute<T, TArgs>(fn: (...args: TArgs) => T, args?: TArgs, ttl?: number): ExecutableThread<T, TArgs>`
+Creates a new thread to execute a function once.
+
+- `ttl` - (optional) Time to live in milliseconds. Thread will be terminated if execution takes longer.
 
 ```typescript
-const thread = new Thread((x: number) => x * x, [5]);
+const thread = Thread.execute((x: number) => x * x, [5]);
+const result = await thread.join();
+
+// With TTL
+const thread = Thread.execute(
+  (x: number) => x * x,
+  [5],
+  5000 // 5 seconds timeout
+);
 ```
 
-#### `join(): Promise<T>`
-Waits for execution to complete and returns the result. Automatically terminates the thread.
+#### `Thread.persistent<T, TArgs>(fn: (...args: TArgs) => T, args?: TArgs): PersistentThread<T, TArgs>`
+Creates a persistent thread for long-running tasks.
+
+```typescript
+const persistent = Thread.persistent(() => {
+  setInterval(() => {
+    console.log('Background task');
+  }, 1000);
+}, []);
+
+persistent.onError((error) => {
+  console.error('Thread error:', error);
+});
+
+persistent.terminate(); // Don't forget to clean up
+```
+
+#### `Thread.prewarm(count?: number): void`
+Prewarms a pool of workers to reduce thread creation overhead.
+
+```typescript
+// Prewarm 4 workers (default)
+Thread.prewarm();
+
+// Prewarm specific number of workers
+Thread.prewarm(8);
+
+// Now Thread.execute() will reuse prewarmed workers
+const thread = Thread.execute((x: number) => x * 2, [21]);
+```
+
+#### `Thread.clearPool(): void`
+Clears the prewarmed worker pool and terminates all workers.
+
+```typescript
+Thread.clearPool();
+```
+
+#### `ExecutableThread.join(): Promise<T>`
+Waits for execution to complete and returns the result. Automatically terminates or returns thread to pool.
 
 ```typescript
 const result = await thread.join();
+```
+
+#### `PersistentThread.onError(callback: (error: Error) => void): this`
+Registers an error handler for persistent threads.
+
+```typescript
+persistent.onError((error) => {
+  console.error('Error in persistent thread:', error);
+});
+```
+
+#### `PersistentThread.terminate(): void`
+Terminates a persistent thread.
+
+```typescript
+persistent.terminate();
 ```
 
 ## Important Notes
@@ -280,9 +397,12 @@ const pool = new ThreadPool(os.cpus().length * 2);
 ## Roadmap
 
 - [x] Support for transferable objects for large data
+- [x] Task TTL (time to live) support
+- [x] Persistent threads for long-running tasks
+- [x] Worker prewarming for reduced overhead
+- [x] Pool statistics and monitoring
 - [ ] Automatic selection of optimal pool size
 - [ ] Task prioritization
-- [ ] Monitoring and statistics
 - [ ] Support for async functions in threads
 
 ## Feedback
@@ -296,11 +416,5 @@ Found a bug or have an idea? [Create an issue](https://github.com/b1411/parallel
 ## License
 
 MIT © [b1411](https://github.com/b1411)
-
----
-
-<p align="center">
-  Made with ❤️ for the Node.js community
-</p>
 
 

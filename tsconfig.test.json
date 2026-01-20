@@ -4,31 +4,26 @@
     // Override root directory for tests
     "rootDir": ".",
     "outDir": "./dist-tests",
-    
     // Test files often use require() for dynamic imports in workers
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    
     // Allow 'any' type for test mocking and edge cases
     "noImplicitAny": false,
-    
     // Relax some strict checks for testing
     "noUncheckedIndexedAccess": false,
     "exactOptionalPropertyTypes": false,
-    
     // Allow unused variables in tests (for destructuring, error variables, etc.)
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    
     // Include Jest types
     "types": [
       "node",
       "jest"
     ],
-    
     // Allow JS files for Jest config
     "allowJs": true,
-    "checkJs": false
+    "checkJs": false,
+    "strict": true
   },
   "include": [
     "tests/**/*.ts",

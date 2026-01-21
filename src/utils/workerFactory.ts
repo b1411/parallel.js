@@ -1,5 +1,4 @@
-import type { WorkerMessage } from "@/types.js";
-import { Worker, type Transferable } from "node:worker_threads";
+import { Worker } from "node:worker_threads";
 
 const workerCode = `
     const { parentPort } = require('worker_threads');
@@ -44,21 +43,5 @@ const workerCode = `
 `;
 
 export function createWorker() {
-    const worker = new Worker(workerCode, { eval: true });
-    return {
-        worker,
-        run<R, TArgs extends unknown[] = unknown[]>(
-            fn: (...args: TArgs) => R,
-            args: TArgs = [] as unknown as TArgs,
-            transferables?: Transferable[]
-        ) {
-            const message = {
-                type: 'execute',
-                fn: fn.toString(),
-                args
-            } satisfies WorkerMessage;
-            // Поддержка старого API без type (для обратной совместимости)
-            worker.postMessage(message, transferables || []);
-        }
-    }
+    return new Worker(workerCode, { eval: true });
 }

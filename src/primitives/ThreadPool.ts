@@ -28,9 +28,9 @@ export class ThreadPool {
     private initWorkers() {
         for (let i = 0; i < this.size; i++) {
             const worker = createWorker();
-            this.setupWorkerHandlers(worker.worker);
-            this.workers.push(worker.worker);
-            this.availableWorkers.push(worker.worker);
+            this.setupWorkerHandlers(worker);
+            this.workers.push(worker);
+            this.availableWorkers.push(worker);
         }
     }
 
@@ -82,9 +82,9 @@ export class ThreadPool {
         crashedWorker.terminate();
 
         const newWorker = createWorker();
-        this.setupWorkerHandlers(newWorker.worker);
-        this.workers.push(newWorker.worker);
-        this.availableWorkers.push(newWorker.worker);
+        this.setupWorkerHandlers(newWorker);
+        this.workers.push(newWorker);
+        this.availableWorkers.push(newWorker);
         this.processQueue();
     }
 

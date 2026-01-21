@@ -1,4 +1,5 @@
 import { createWorker } from "@/utils/workerFactory.js";
+import { availableParallelism } from "node:os";
 import type { Worker } from "node:worker_threads";
 
 export abstract class BaseThread {
@@ -9,17 +10,17 @@ export abstract class BaseThread {
         if (BaseThread.usePool && BaseThread.workerPool.length > 0) {
             this.worker = BaseThread.workerPool.pop() as Worker;
         } else {
-            this.worker = createWorker().worker;
+            this.worker = createWorker();
         }
     }
 
     private static workerPool: Worker[] = [];
     private static usePool = false;
 
-    static prewarm(count = 4) {
+    static prewarm(count = availableParallelism() - 1) {
         this.usePool = true;
         for (let i = 0; i < count; i++) {
-            const worker = createWorker().worker;
+            const worker = createWorker();
             this.workerPool.push(worker);
         }
     }

@@ -1,24 +1,29 @@
 import type { Transferable } from "node:worker_threads";
 
 export const extractTransferables = <TArgs>(args: TArgs): Transferable[] => {
-    const transferables: Transferable[] = [];
+    const transferables: Set<Transferable> = new Set<Transferable>();
 
     const extract = (obj: unknown): void => {
         if (!obj) return;
 
-        if (obj instanceof ArrayBuffer) {
-            transferables.push(obj);
-        } else if (ArrayBuffer.isView(obj)) {
-            if (obj.buffer instanceof ArrayBuffer) {
-                transferables.push(obj.buffer);
+        if (obj instanceof MessagePort) {
+            transferables.add(obj);
+        } else
+            if (obj instanceof ArrayBuffer && !(obj instanceof SharedArrayBuffer)) {
+                transferables.add(obj);
+            } else if (ArrayBuffer.isView(obj)) {
+                if (obj.buffer instanceof ArrayBuffer && !(obj.buffer instanceof SharedArrayBuffer)) {
+                    transferables.add(obj.buffer);
+                }
+            } else if (Array.isArray(obj)) {
+                obj.forEach(extract);
+            } else if (typeof obj === 'object') {
+                for (const o of Object.values(obj)) {
+                    extract(o);
+                }
             }
-        } else if (Array.isArray(obj)) {
-            obj.forEach(extract);
-        } else if (typeof obj === 'object') {
-            Object.values(obj).forEach(extract);
-        }
     };
 
     extract(args);
-    return transferables;
+    return Array.from(transferables);
 }

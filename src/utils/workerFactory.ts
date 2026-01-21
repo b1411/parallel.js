@@ -1,47 +1,10 @@
 import { Worker } from "node:worker_threads";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
 
-const workerCode = `
-    const { parentPort } = require('worker_threads');
-    
-    parentPort.on('message', async ({ type, fn, args }) => {
-        try {
-            const func = eval('(' + fn + ')');
-            
-            // Execute или Persistent режим
-            if (type === 'persistent') {
-                // Запускаем и не ждем результата
-                func(...args);
-                // Не отправляем success - функция работает бесконечно
-            } else {
-                // Execute режим (по умолчанию)
-                const result = await func(...args);
-                parentPort.postMessage({ success: true, result });
-            }
-            
-        } catch (error) {
-            if (type === 'persistent') {
-                // Persistent ошибка - отправляем с type: 'error'
-                parentPort.postMessage({ 
-                    type: 'error',
-                    error: { 
-                        message: error instanceof Error ? error.message : String(error),
-                        stack: error instanceof Error ? error.stack : undefined
-                    }
-                });
-            } else {
-                // Execute ошибка - старый формат
-                parentPort.postMessage({ 
-                    success: false, 
-                    error: { 
-                        message: error instanceof Error ? error.message : String(error),
-                        stack: error instanceof Error ? error.stack : undefined
-                    }
-                });
-            }
-        }
-    });
-`;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 export function createWorker() {
-    return new Worker(workerCode, { eval: true });
+    return new Worker(join(__dirname, '../worker/internal.js'));
 }

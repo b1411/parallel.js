@@ -4,7 +4,7 @@ export type WorkerMessage =
     | PersistentMessage
 
 export interface ExecuteMessage {
-    type?: 'execute'  // optional для обратной совместимости
+    type?: 'execute'
     fn: string
     args: unknown[]
 }
@@ -15,7 +15,6 @@ export interface PersistentMessage {
     args: unknown[]
 }
 
-// Ответы от worker
 export type WorkerResponse =
     | ExecuteSuccessResponse
     | ExecuteErrorResponse

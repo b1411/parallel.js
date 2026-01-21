@@ -39,16 +39,17 @@
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true,
+    "allowJs": true,
     "paths": {
       "@/*": [
         "./src/*"
       ]
     }
   },
+  "include": [
+    "./src/**/*"
+  ],
   "exclude": [
-    "tests",
-    "dist",
-    "examples",
-    "benchmarks"
+    "node_modules"
   ]
 }

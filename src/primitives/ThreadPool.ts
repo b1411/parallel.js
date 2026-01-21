@@ -13,6 +13,11 @@ interface Task<T> {
     cancelled?: boolean;
 }
 
+/**
+ * ThreadPool for managing a pool of worker threads to execute tasks concurrently.
+ * Supports task queuing, TTL for tasks, and automatic recovery of crashed workers.
+ * Provides methods to execute functions and map over arrays using the pool.
+ */
 export class ThreadPool {
     private workers: Worker[] = [];
     private availableWorkers: Worker[] = [];

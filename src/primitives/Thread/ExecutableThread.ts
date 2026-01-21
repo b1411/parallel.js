@@ -2,6 +2,11 @@ import { extractTransferables } from "@/utils/extractTransferables.js";
 import { BaseThread } from "./BaseThread.js";
 import type { WorkerResponse } from "@/types.js";
 
+/**
+ * Thread for executing a function once in a worker thread or process.
+ * Supports time-to-live (TTL) for automatic termination after a specified duration.
+ * Returns a promise that resolves with the function's result or rejects on error.
+ */
 export class ExecutableThread<T, TArgs extends unknown[] = unknown[]> extends BaseThread {
     private promise: Promise<T>;
     private ttlTimeout: NodeJS.Timeout | null = null;

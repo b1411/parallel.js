@@ -2,6 +2,9 @@ import { BaseThread } from "./BaseThread.js";
 import { ExecutableThread } from "./ExecutableThread.js";
 import { PersistentThread } from "./PersistentThread.js";
 
+/**
+ * Thread API for executing functions in worker threads or processes with prewarming.
+ */
 export const Thread = {
     execute<T, TArgs extends unknown[] = unknown[]>(fn: (...args: TArgs) => T, args: TArgs = [] as unknown as TArgs, ttl = 0) {
         return new ExecutableThread<T, TArgs>(fn, args, ttl);

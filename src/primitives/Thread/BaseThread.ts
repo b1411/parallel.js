@@ -2,6 +2,11 @@ import { createWorker } from "@/utils/workerFactory.js";
 import { availableParallelism } from "node:os";
 import type { Worker } from "node:worker_threads";
 
+/**
+ * Abstract base class for thread implementations.
+ * Manages worker thread creation, termination, and pooling.
+ * Supports prewarming of worker threads for performance optimization.
+ */
 export abstract class BaseThread {
     protected worker: Worker;
     protected terminated = false;

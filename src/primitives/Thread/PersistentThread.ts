@@ -2,6 +2,11 @@ import type { WorkerResponse } from "@/types.js";
 import { BaseThread } from "./BaseThread.js";
 import { extractTransferables } from "@/utils/extractTransferables.js";
 
+/**
+ * Thread for persistent execution of a function in a worker thread or process.
+ * Allows handling of errors through registered callbacks.
+ * Does not return results; focuses on error management.
+ */
 export class PersistentThread<T, TArgs extends unknown[] = unknown[]> extends BaseThread {
     private errorHandlers: ((error: Error) => void)[] = [];
     private messageHandler: ((res: WorkerResponse) => void) | null = null;

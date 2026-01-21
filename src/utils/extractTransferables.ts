@@ -1,5 +1,12 @@
 import type { Transferable } from "node:worker_threads";
 
+/** 
+ * Extracts transferable objects from the given arguments.
+ * Supports MessagePorts and ArrayBuffers (excluding SharedArrayBuffers).
+ * 
+ * @param args - The arguments to extract transferables from.
+ * @returns An array of transferable objects.
+*/
 export const extractTransferables = <TArgs>(args: TArgs): Transferable[] => {
     const transferables: Set<Transferable> = new Set<Transferable>();
 

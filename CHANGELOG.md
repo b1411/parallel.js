@@ -1,3 +1,10 @@
+# [3.1.0](https://github.com/b1411/parallel.js/compare/v3.0.1...v3.1.0) (2026-01-21)
+
+
+### Features
+
+* and improve worker creation; update ThreadPool and BaseThread for better worker management ([f8b9796](https://github.com/b1411/parallel.js/commit/f8b9796a1315070803f502818eb4a508b725cff9))
+
 ## [3.0.1](https://github.com/b1411/parallel.js/compare/v3.0.0...v3.0.1) (2026-01-17)
 
 

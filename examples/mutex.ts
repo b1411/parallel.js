@@ -13,7 +13,6 @@ async function incrementCounter(counterBuffer: SharedArrayBuffer, mutexBuffer: S
     mutex.lock();
     try {
         const current = counter[0];
-        // Симулируем долгую операцию
         for (let i = 0; i < 1e6; i++);
         counter[0] = current + 1;
         console.log(`Counter: ${counter[0]}`);
